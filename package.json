@@ -1,0 +1,12 @@
+{
+  "dependencies": {
+    "bcrypt": "^0.8.4",
+    "good": "^6.3.0",
+    "good-console": "^5.0.2",
+    "hapi": "^8.8.1",
+    "hapi-auth-basic": "^3.0.0",
+    "hapi-auth-cookie": "^3.0.1",
+    "joi": "^6.6.1",
+    "mysql": "^2.8.0"
+  }
+}
