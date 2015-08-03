@@ -3,20 +3,21 @@ var Good = require('good');
 var Basic = require('hapi-auth-basic');
 var database = require('./database.js');
 var Joi = require('joi');
+var config = require('./config.js');
 
 var server = new Hapi.Server({
   connections: {
     routes: {
       cors: { // Enable Cross-Origin-Resource-Sharing during dev.
-        origin: ['http://localhost:3000'],
-        credentials: true, // allows user credentials to be sent to cross-origin clients
+        origin: ['*'], // Allow any origin to perform a CORS request
+        credentials: true, // Access-Control-Allow-Credentials: true
       },
     }
   }
 });
 server.connection({
-  host: '0.0.0.0',
-  port: 8000
+  host: config.host,
+  port: config.port
 });
 
 // initialize the database connection pool
