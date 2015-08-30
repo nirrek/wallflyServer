@@ -8,7 +8,7 @@ function loginHandler(request, reply) {
   // Handle missing credentials
   if (!username || !password) {
     message = 'Missing username or password';
-    return reply(message);
+    return reply(message).code(401);
   }
 
   // Fetch user the user model from the database
