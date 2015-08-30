@@ -8,10 +8,13 @@ function userCreate(request, reply) {
   createUser(request.payload, function(error) {
     if (error) {
       // TODO
-      reply(error);
+      reply(error).code(400);
+      return;
     }
 
-    reply('User created!');
+    reply({
+      isSuccessful: true
+    });
   });
 
 }
@@ -22,12 +25,14 @@ function createUser(payload, callback) {
 
   pool.getConnection(function(err, connection) {
     connection.query({
-      sql: 'SELECT * FROM `userTypes` where type = ?',
-      values: [payload.userType],
+      // Fetch the current userTypes in the database.
+      sql: 'SELECT * FROM `user_types` where type = ?',
+      values: [p.userType],
     }, function(error, results) {
       if (error) {
+        console.log(error);
         connection.release();
-        callback(error);
+        return callback(error);
       }
 
       var userTypeId = results[0].id;
@@ -45,7 +50,20 @@ function createUser(payload, callback) {
         values: [p.username, hash, p.firstName, p.lastName, p.phone, p.email, userTypeId],
       }, function(error, results) {
         connection.release();
-        callback(error);
+
+        if (error) {
+          console.log(error);
+
+          // hapi will complain if we try to return the error object as one of
+          // the property names `code` has another meaning in hapi responses
+          var nonconflictError = {
+            errorType: error.code,
+            errorMessage: error.message,
+          }
+          return callback(nonconflictError);
+        }
+
+        callback(null);
       });
     });
   });
