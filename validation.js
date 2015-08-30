@@ -6,7 +6,8 @@ function validate(request, username, password, callback) {
 
   pool.getConnection(function(err, connection) {
     connection.query({
-      sql: 'SELECT * FROM `users` where username = ?',
+      sql: 'SELECT * FROM `user_types` ut, `users` u '
+         + 'where u.userType = ut.id AND username = ?',
       values: [username],
     }, function(error, results) {
       connection.release();
@@ -17,6 +18,7 @@ function validate(request, username, password, callback) {
       Bcrypt.compare(password, user.password, function(err, isValid) {
         // Remove user password hash before returning user model
         delete user.password;
+        delete user.userType;
 
         callback(err, isValid, user);
       });
