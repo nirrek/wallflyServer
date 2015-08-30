@@ -4,11 +4,15 @@ var pool = database.getConnectionPool();
 
 function userRepairs(request, reply) {
   var userId = request.params.userId;
-
   if (request.auth.artifacts.id !== userId) {
     return reply('You arent allowed to do this');
   }
 
+  if      (request.method === 'get')  getHandler(request, reply, userId);
+  else if (request.method === 'post') postHandler(request, reply, userId);
+}
+
+function getHandler(request, reply, userId) {
   pool.getConnection(function(err, connection) {
     connection.query({
       sql: 'SELECT date, subject, request, photo ' +
@@ -27,7 +31,21 @@ function userRepairs(request, reply) {
       reply(massagedResults);
     });
   });
+}
 
+function postHandler(request, reply, userId) {
+  pool.getConnection(function(err, connection) {
+    connection.query({
+      sql: 'INSERT INTO repair_requests (date, subject, request, photo, tenantId, propertyId) ' +
+           'VALUES (?, ?, ?, ?, ?, ?)',
+      values: [request.payload.date, request.payload.subject, request.payload.description, request.payload.image, userId, 3],
+    }, function(err, results) {
+      connection.release();
+      if (err) reply(err);
+
+      reply('Repair Request added successfully');
+    });
+  });
 }
 
 module.exports = userRepairs;
