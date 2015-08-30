@@ -3,7 +3,7 @@ var database = require('../database.js');
 var pool = database.getConnectionPool();
 
 function userProperty(request, reply) {
-  var userId = parseInt(request.params.userId, 10);
+  var userId = request.params.userId;
 
   if (request.auth.artifacts.id !== userId) {
     return reply('You arent allowed to do this');
