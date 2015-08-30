@@ -80,11 +80,25 @@ server.route([
     }
   },
   {
+    method: 'GET',
+    path: '/users/{userId}',
+    config: {
+      handler: require('./handlers/userGet.js'),
+      auth: 'session',
+      validate: {
+        params: { userId: Joi.number().integer() }
+      }
+    }
+  },
+  {
     method: 'PUT',
     path: '/users/{userId}',
     config: {
       handler: require('./handlers/userUpdate.js'),
       auth: 'session',
+      validate: {
+        params: { userId: Joi.number().integer() }
+      }
     }
   },
   {
