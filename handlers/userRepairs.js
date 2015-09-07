@@ -41,10 +41,10 @@ function postHandler(request, reply, userId) {
       values:
       [request.payload.date,
       request.payload.subject,
-      request.payload.description, 
+      request.payload.description,
       request.payload.image,
       userId,
-      request.payload.propertyID] //TODO: Work out propertyID from the user
+      3] //TODO: Work out propertyID from the user
       ,
     }, function(err, results) {
       connection.release();
