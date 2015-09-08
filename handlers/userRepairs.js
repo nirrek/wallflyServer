@@ -34,23 +34,35 @@ function getHandler(request, reply, userId) {
 }
 
 function postHandler(request, reply, userId) {
+  var payload = request.payload;
   pool.getConnection(function(err, connection) {
     connection.query({
-      sql: 'INSERT INTO repair_requests (date, subject, request, photo, tenantId, propertyId) ' +
-           'VALUES (?, ?, ?, ?, ?, ?)',
-      values:
-      [request.payload.date,
-      request.payload.subject,
-      request.payload.description,
-      request.payload.image,
-      userId,
-      3] //TODO: Work out propertyID from the user
-      ,
+      sql: 'SELECT id FROM properties WHERE tenantId = ?',
+      values: [userId]
     }, function(err, results) {
-      connection.release();
-      if (err) reply(err);
+      if (err) {
+        connection.release();
+        return reply(err);
+      }
+      var propertyId = results[0].id;
 
-      reply('Repair Request added successfully');
+      connection.query({
+        sql: 'INSERT INTO repair_requests (date, subject, ' +
+           'request, photo, tenantId, propertyId) ' +
+             'VALUES (?, ?, ?, ?, ?, ?)',
+        values:
+        [payload.date,
+        payload.subject,
+        payload.description,
+        payload.image,
+        userId,
+        propertyId],
+      }, function(err, results) {
+        connection.release();
+        if (err) reply(err);
+
+        reply('Repair Request added successfully');
+      });
     });
   });
 }
