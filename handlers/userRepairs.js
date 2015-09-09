@@ -49,14 +49,15 @@ function postHandler(request, reply, userId) {
       connection.query({
         sql: 'INSERT INTO repair_requests (date, subject, ' +
            'request, photo, tenantId, propertyId) ' +
-             'VALUES (?, ?, ?, ?, ?, ?)',
-        values:
-        [payload.date,
-        payload.subject,
-        payload.description,
-        payload.image,
-        userId,
-        propertyId],
+           'VALUES (?, ?, ?, ?, ?, ?)',
+        values:[
+          payload.date,
+          payload.subject,
+          payload.description,
+          payload.image,
+          userId,
+          propertyId
+        ],
       }, function(err, results) {
         connection.release();
         if (err) reply(err);
