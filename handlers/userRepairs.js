@@ -15,7 +15,7 @@ function userRepairs(request, reply) {
 function getHandler(request, reply, userId) {
   pool.getConnection(function(err, connection) {
     connection.query({
-      sql: 'SELECT date, subject, request, photo ' +
+      sql: 'SELECT id, date, request, photo, status ' +
            'FROM repair_requests WHERE tenantId = ?',
       values: [userId],
     }, function(err, results) {
@@ -47,12 +47,10 @@ function postHandler(request, reply, userId) {
       var propertyId = results[0].id;
 
       connection.query({
-        sql: 'INSERT INTO repair_requests (date, subject, ' +
-           'request, photo, tenantId, propertyId) ' +
-           'VALUES (?, ?, ?, ?, ?, ?)',
+        sql: 'INSERT INTO repair_requests (' +
+          'request, photo, tenantId, propertyId) ' +
+          'VALUES (?, ?, ?, ?)',
         values:[
-          payload.date,
-          payload.subject,
           payload.description,
           payload.image,
           userId,
