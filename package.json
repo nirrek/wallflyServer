@@ -1,5 +1,9 @@
 {
+  "scripts": {
+    "start": "npm install && node ."
+  },
   "dependencies": {
+    "app-root-path": "^1.0.0",
     "bcrypt": "^0.8.4",
     "good": "^6.3.0",
     "good-console": "^5.0.2",
