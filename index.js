@@ -177,6 +177,79 @@ server.route([
         index: false
       }
     }
+  },
+
+
+  // ---------------------------------------------------------------------------
+  // Property Resource Routes
+  // ---------------------------------------------------------------------------
+  {
+    method: 'GET',
+    path: '/properties',
+    config: {
+      handler: require('./handlers/properties.js'),
+      auth: 'session',
+      validate: {
+        query: {
+          userId: Joi.number().integer()
+        }
+      }
+    }
+  },
+  {
+    method: 'GET',
+    path: '/properties/{propertyId}/details',
+    config: {
+      handler: require('./handlers/propertyDetails.js'),
+      auth: 'session',
+      validate: {
+        params: { propertyId: Joi.number().integer() }
+      }
+    }
+  },
+  {
+    method: 'GET',
+    path: '/properties/{propertyId}/payments',
+    config: {
+      handler: require('./handlers/propertyPayments.js'),
+      auth: 'session',
+      validate: {
+        params: { propertyId: Joi.number().integer() }
+      }
+    }
+  },
+  {
+    method: 'GET',
+    path: '/properties/{propertyId}/repairRequests',
+    config: {
+      handler: require('./handlers/propertyRepairRequests.js'),
+      auth: 'session',
+      validate: {
+        params: { propertyId: Joi.number().integer() }
+      }
+    }
+  },
+  {
+    method: 'GET',
+    path: '/properties/{propertyId}/inspectionReports',
+    config: {
+      handler: require('./handlers/propertyInspectionReports.js'),
+      auth: 'session',
+      validate: {
+        params: { propertyId: Joi.number().integer() }
+      }
+    }
+  },
+  {
+    method: 'GET',
+    path: '/properties/{propertyId}/calendarEvents',
+    config: {
+      handler: require('./handlers/propertyCalendarEvents.js'),
+      auth: 'session',
+      validate: {
+        params: { propertyId: Joi.number().integer() }
+      }
+    }
   }
 ]);
 
