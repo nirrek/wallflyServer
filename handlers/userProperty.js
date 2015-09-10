@@ -1,4 +1,5 @@
 var config = require('../config.js');
+var getPhotoUrl = require('../utils.js').getPhotoUrl;
 var database = require('../database.js');
 var pool = database.getConnectionPool();
 
@@ -25,7 +26,9 @@ function userProperty(request, reply) {
       if (err) return reply(err);
 
       var result = results[0];
-      result.photo = config.urlRoot + result.photo; // set absolute URL for photo
+      if (result) {
+        result.photo = getPhotoUrl(result.photo);
+      }
       reply(result);
     });
   });

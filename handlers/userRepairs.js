@@ -1,6 +1,6 @@
-var config = require('../config.js');
 var database = require('../database.js');
 var pool = database.getConnectionPool();
+var getPhotoUrl = require('../utils.js').getPhotoUrl;
 
 function userRepairs(request, reply) {
   var userId = request.params.userId;
@@ -20,7 +20,7 @@ function userRepairs(request, reply) {
 
       // Put the result set in a form for client consumption
       var massagedResults = results.map(function(row) {
-        row.photo = config.urlRoot + row.photo; // set absolute URL for photo
+        row.photo = getPhotoUrl(row.photo);
         return row;
       });
 
