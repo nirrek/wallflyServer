@@ -135,6 +135,17 @@ server.route([
     }
   },
   {
+    path: '/users/{userId}/repairs',
+    method: 'POST',
+    config: {
+      handler: require('./handlers/userRepairs.js'),
+      auth: 'session',
+      validate: {
+        params: { userId: Joi.number().integer() }
+      }
+    }
+  },
+  {
     path: '/users/{userId}/inspections',
     method: 'GET',
     config: {
