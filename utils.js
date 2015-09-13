@@ -24,6 +24,32 @@ function getPhotoUrl(photoPath) {
   return config.urlRoot + photoPath;
 }
 
+/**
+ * Writes a given hapi file object to the given outputPath.
+ * @param  {Object}   file       Hapi file object (eg. from multipart form)
+ * @param  {String}   outputPath Filepath of the file to write to.
+ * @param  {Function} cb         Callback invoked on success/fail.
+ */
+function writeFile(file, outputPath, cb) {
+  var outputFile = fs.createWriteStream(outputPath);
+
+  // Catch I/O errors while writing to the strem.
+  outputFile.on('error', function(err) {
+    console.log(err);
+  });
+
+  file.pipe(outputFile);
+
+  file.on('end', function(err) {
+    if (err) {
+      cb(err);
+    } else {
+      cb(null);
+    }
+  });
+}
+
 module.exports = {
   getPhotoUrl: getPhotoUrl,
+  writeFile: writeFile,
 };
