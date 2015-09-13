@@ -21,20 +21,14 @@ function getHandler(request, reply, userId) {
     }, function(err, results) {
       connection.release();
       if (err) return reply(err).code(500);
-
-      // Put the result set in a form for client consumption
-      var massagedResults = results.map(function(row) {
-        row.photo = getPhotoUrl(row.photo);
-        return row;
-      });
-
-      reply(massagedResults);
+      reply(results);
     });
   });
 }
 
 function postHandler(request, reply, userId) {
   var payload = request.payload;
+
   pool.getConnection(function(err, connection) {
     connection.query({
       sql: 'SELECT id FROM properties WHERE tenantId = ?',
@@ -52,7 +46,7 @@ function postHandler(request, reply, userId) {
              'VALUES (?, ?, ?, ?)',
         values:[
           payload.description,
-          payload.image,
+          payload.dataUri,
           userId,
           propertyId
         ],
@@ -67,6 +61,8 @@ function postHandler(request, reply, userId) {
       });
     });
   });
+
+
 }
 
 module.exports = userRepairs;
