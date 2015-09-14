@@ -113,6 +113,17 @@ server.route([
     }
   },
   {
+    path: '/users/{userId}/addProperty',
+    method: 'POST',
+    config: {
+      handler: require('./handlers/propertyAddNew.js'),
+      auth: 'session',
+      validate: {
+        params: { userId: Joi.number().integer() }
+      }
+    }
+  },
+  {
     path: '/users/{userId}/payments',
     method: 'GET',
     config: {
@@ -204,17 +215,6 @@ server.route([
         query: {
           userId: Joi.number().integer()
         }
-      }
-    }
-  },
-  {
-    path: '/properties/addProperty',
-    method: 'POST',
-    config: {
-      handler: require('./handlers/propertyAddNew.js'),
-      auth: 'session',
-      validate: {
-        params: { userId: Joi.number().integer() }
       }
     }
   },
