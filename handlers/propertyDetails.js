@@ -20,9 +20,7 @@ function propertyDetails(request, reply) {
       }
 
       var result = results[0];
-      if (result) {
-        result.photo = getPhotoUrl(result.photo);
-      } else {
+      if (!result) {
         console.log('No result for propertyId = ' + propertyId)
       }
       reply(result);

@@ -26,9 +26,6 @@ function userProperty(request, reply) {
       if (err) return reply(err);
 
       var result = results[0];
-      if (result) {
-        result.photo = getPhotoUrl(result.photo);
-      }
       reply(result);
     });
   });
