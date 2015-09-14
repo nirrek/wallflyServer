@@ -17,7 +17,7 @@ function userPayments(request, reply) {
 function getHandler(request, reply, userId){
     pool.getConnection(function(err, connection) {
       connection.query({
-        sql: 'SELECT * FROM payments y, properties p ' +
+        sql: 'SELECT * FROM properties p, payments y ' +
              'WHERE y.propertyId = p.id AND y.tenantId = ?',
         values: [userId],
       }, function(err, results) {
