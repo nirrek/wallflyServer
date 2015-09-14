@@ -27,6 +27,7 @@ function getHandler(request, reply, userId){
         // Put the result set in a more consumable form
         var massagedResults = results.map(function(row) {
           return {
+            id: row.id,
             date: row.date,
             property: row.street + ', ' + row.suburb,
             amount: row.amount
