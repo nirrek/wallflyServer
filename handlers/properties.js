@@ -45,9 +45,9 @@ function postHandler(request, reply, userId) {
       sql: 'SELECT id FROM users WHERE email = ?',
       values: [payload.ownerEmail]
     }, function(err, results) {
-      if (err) {
+      if (err || !results[0]) {
         connection.release();
-        return reply(err);
+        return reply(err).code(500);
       }
       var ownerUser = results[0].id;
 
@@ -55,9 +55,9 @@ function postHandler(request, reply, userId) {
         sql: 'SELECT id FROM users WHERE email = ?',
         values: [payload.tenantEmail]
       }, function(err, results) {
-        if (err) {
+        if (err || !results[0]) {
           connection.release();
-          return reply(err);
+          return reply(err).code(500);
         }
         var tenantUser = results[0].id;
 
