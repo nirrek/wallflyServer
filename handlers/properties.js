@@ -25,12 +25,6 @@ function getHandler(request, reply, userId) {
       connection.release();
       if (err) return reply(err);
 
-      // Convert relative photo paths into URLs for all results.
-      results.map(function(result) {
-        result.photo = getPhotoUrl(result.photo);
-        return result;
-      });
-
       reply(results);
     });
   });
