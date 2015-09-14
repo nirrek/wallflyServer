@@ -14,7 +14,7 @@ function userPayments(request, reply) {
 }
 
 
-function getHandler(request, reply, userId){  
+function getHandler(request, reply, userId){
     pool.getConnection(function(err, connection) {
       connection.query({
         sql: 'SELECT * FROM payments y, properties p ' +
@@ -38,27 +38,39 @@ function getHandler(request, reply, userId){
     });
 }
 
-function postHandler(request, reply, userId){  
-    pool.getConnection(function(err, connection) {
-      connection.query({
-        sql: 'INSERT INTO payments (date, amount, tenantId, propertyId)' +
-             'VALUES (?, ?, ?, ?)',
-        values: [request.payload.date,
-                request.payload.amount,
-                userId,
-                3]
+function postHandler(request, reply, userId) {
+  var payload = request.payload;
 
+  pool.getConnection(function(err, connection) {
+    connection.query({
+      sql: 'SELECT id FROM properties WHERE tenantId = ?',
+      values: [userId]
+    }, function(err, results) {
+      if (err) {
+        connection.release();
+        return reply(err);
+      }
+      var propertyId = results[0].id;
+
+      connection.query({
+        sql: 'INSERT INTO payments (amount, tenantId, propertyId)' +
+             'VALUES (?, ?, ?)',
+        values:[
+          payload.amount,
+          userId,
+          propertyId
         ],
       }, function(err, results) {
         connection.release();
-        if (err) return reply(err);
+        if (err) {
+          reply(err).code(500);
+          return;
+        }
 
         reply('Payment added successfully');
       });
     });
+  });
 }
 
-
-
 module.exports = userPayments;
-

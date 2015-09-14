@@ -123,7 +123,17 @@ server.route([
       }
     }
   },
- 
+  {
+    path: '/users/{userId}/payments',
+    method: 'POST',
+    config: {
+      handler: require('./handlers/userPayments.js'),
+      auth: 'session',
+      validate: {
+        params: { userId: Joi.number().integer() }
+      }
+    }
+  },
   {
     path: '/users/{userId}/repairs',
     method: 'GET',
@@ -268,4 +278,3 @@ server.route([
 server.start(function() {
   console.log('server running at: ' + server.info.uri);
 });
-
