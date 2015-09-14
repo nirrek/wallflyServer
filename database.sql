@@ -115,7 +115,7 @@ DROP TABLE IF EXISTS `payments`;
 
 CREATE TABLE `payments` (
   `id` int(11) NOT NULL AUTO_INCREMENT,
-  `date` date NOT NULL,
+  `date` timestamp NOT NULL DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
   `amount` decimal(10,2) NOT NULL,
   `tenantId` int(11) NOT NULL,
   `propertyId` int(11) NOT NULL,
@@ -131,8 +131,8 @@ LOCK TABLES `payments` WRITE;
 
 INSERT INTO `payments` (`id`, `date`, `amount`, `tenantId`, `propertyId`)
 VALUES
-	(1,'2015-08-01',820.25,5,3),
-	(2,'2015-07-01',820.25,5,3);
+	(1,'2015-08-01 00:00:00',820.25,5,3),
+	(2,'2015-07-01 00:00:00',820.25,5,3);
 
 /*!40000 ALTER TABLE `payments` ENABLE KEYS */;
 UNLOCK TABLES;
