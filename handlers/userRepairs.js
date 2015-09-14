@@ -61,8 +61,6 @@ function postHandler(request, reply, userId) {
       });
     });
   });
-
-
 }
 
 module.exports = userRepairs;
