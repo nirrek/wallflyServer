@@ -10,6 +10,11 @@ function properties(request, reply) {
     return reply('You arent allowed to do this').code(401);
   }
 
+  if      (request.method === 'get')  getHandler(request, reply, userId);
+  else if (request.method === 'post') postHandler(request, reply, userId);
+}
+
+function getHandler(request, reply, userId) {
   pool.getConnection(function(err, connection) {
     connection.query({
       sql: 'SELECT * ' +
@@ -27,6 +32,58 @@ function properties(request, reply) {
       });
 
       reply(results);
+    });
+  });
+
+}
+
+function postHandler(request, reply, userId) {
+  var payload = request.payload;
+
+  pool.getConnection(function(err, connection) {
+    connection.query({
+      sql: 'SELECT id FROM users WHERE email = ?',
+      values: [payload.ownerEmail]
+    }, function(err, results) {
+      if (err) {
+        connection.release();
+        return reply(err);
+      }
+      var ownerUser = results[0].id;
+
+      connection.query({
+        sql: 'SELECT id FROM users WHERE email = ?',
+        values: [payload.tenantEmail]
+      }, function(err, results) {
+        if (err) {
+          connection.release();
+          return reply(err);
+        }
+        var tenantUser = results[0].id;
+
+          connection.query({
+            sql: 'INSERT INTO properties ' +
+                 '(agentId, ownerId, postcode, street, suburb, tenantId, photo) ' +
+                 'VALUES (?, ?, ?, ?, ?, ?, ?)',
+            values:[
+              userId,
+              ownerUser,
+              payload.postCode,
+              payload.streetAddress,
+              payload.suburb,
+              tenantUser,
+              payload.dataUrl,
+            ],
+          }, function(err, results) {
+            connection.release();
+            if (err) {
+              reply(err).code(500);
+              return;
+            }
+
+          reply('Property added successfully');
+        });
+      });
     });
   });
 
