@@ -208,6 +208,17 @@ server.route([
     }
   },
   {
+    path: '/properties/addProperty',
+    method: 'POST',
+    config: {
+      handler: require('./handlers/propertyAddNew.js'),
+      auth: 'session',
+      validate: {
+        params: { userId: Joi.number().integer() }
+      }
+    }
+  },
+  {
     method: 'GET',
     path: '/properties/{propertyId}/details',
     config: {
