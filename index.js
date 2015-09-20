@@ -71,6 +71,7 @@ server.route([
           phone: Joi.string().alphanum().max(10),
           email: Joi.string().email(),
           userType: Joi.string().valid(['tenant', 'agent', 'owner']),
+          avatar: Joi.string(),
         },
         options: {
           abortEarly: false,    // find all validation errors, not just first.

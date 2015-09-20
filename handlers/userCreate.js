@@ -45,9 +45,9 @@ function createUser(payload, callback) {
 
       // Insert the new user into the DB
       connection.query({
-        sql: 'INSERT INTO `users` (username, password, firstName, lastName, phone, email, userType) ' +
-             'VALUES(?, ?, ?, ?, ?, ?, ?)',
-        values: [p.username, hash, p.firstName, p.lastName, p.phone, p.email, userTypeId],
+        sql: 'INSERT INTO `users` (username, password, firstName, lastName, phone, email, userType, avatar) ' +
+             'VALUES(?, ?, ?, ?, ?, ?, ?, ?)',
+        values: [p.username, hash, p.firstName, p.lastName, p.phone, p.email, userTypeId, p.avatar],
       }, function(error, results) {
         connection.release();
 
