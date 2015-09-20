@@ -36,7 +36,7 @@ function postHandler(request, reply, userId) {
 
   pool.getConnection(function(err, connection) {
     connection.query({
-      sql: 'SELECT id FROM users WHERE email = ?',
+      sql: 'SELECT id FROM users WHERE email = ? AND userType = 3',
       values: [payload.ownerEmail]
     }, function(err, results) {
       if (err || !results[0]) {
@@ -47,7 +47,7 @@ function postHandler(request, reply, userId) {
 
       if (payload.tenantEmail != '') {
         connection.query({
-          sql: 'SELECT id FROM users WHERE email = ?',
+          sql: 'SELECT id FROM users WHERE email = ? AND userType = 1',
           values: [payload.tenantEmail]
         }, function(err, results) {
           if (err || !results[0]) {
