@@ -35,7 +35,7 @@ function getHandler(request, reply) {
 
 function postHandler(request, reply) {
   var payload = request.payload;
-  var userId = 6; //Temporary hardcoded - userid currently can't be passed via params
+  var userId = request.auth.artifacts.id;
 
   pool.getConnection(function(err, connection) {
     connection.query({
