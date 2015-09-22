@@ -46,7 +46,7 @@ function postHandler(request, reply, userId) {
              'VALUES (?, ?, ?, ?)',
         values:[
           payload.description,
-          payload.dataUri,
+          payload.image,
           userId,
           propertyId
         ],
