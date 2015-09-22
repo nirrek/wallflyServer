@@ -277,6 +277,17 @@ server.route([
     }
   },
   {
+    method: 'POST',
+    path: '/properties/{propertyId}/inspectionReports',
+    config: {
+      handler: require('./handlers/propertyInspectionReports.js'),
+      auth: 'session',
+      validate: {
+        params: { propertyId: Joi.number().integer() }
+      }
+    }
+  },
+  {
     method: 'GET',
     path: '/properties/{propertyId}/calendarEvents',
     config: {

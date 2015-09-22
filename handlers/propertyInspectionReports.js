@@ -2,8 +2,14 @@ var database = require('../database.js');
 var pool = database.getConnectionPool();
 
 function propertyInspectionReports(request, reply) {
-  var propertyId = request.params.propertyId;
 
+  if      (request.method === 'get')  getHandler(request, reply);
+  else if (request.method === 'post') postHandler(request, reply);
+
+}
+
+function getHandler(request, reply) {
+  var propertyId = request.params.propertyId;
   // TODO add access control. Currently any authed user can fetch the details
   // of any property, not just one they are associated with.
 
@@ -27,5 +33,31 @@ function propertyInspectionReports(request, reply) {
 
 }
 
-module.exports = propertyInspectionReports;
+function postHandler(request, reply) {
+  var payload = request.payload;
+  var userId = request.auth.artifacts.id;
 
+  pool.getConnection(function(err, connection) {
+    connection.query({
+      sql: 'INSERT INTO inspections ' +
+           '(comments, photo, propertyId, inspectorId) ' +
+           'VALUES (?, ?, ?, ?)',
+      values:[
+        payload.comments,
+        payload.image,
+        payload.propertyId,
+        userId
+      ],
+    }, function(err, results) {
+      connection.release();
+      if (err) {
+        console.log('Error in propertyInspectionReports.js', err);
+        return reply('Error').code(500);
+      }
+
+      reply('Property Inspection Report added successfully');
+    });
+  });
+}
+
+module.exports = propertyInspectionReports;
