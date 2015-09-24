@@ -244,6 +244,17 @@ server.route([
     }
   },
   {
+    method: 'POST',
+    path: '/properties/{propertyId}/details',
+    config: {
+      handler: require('./handlers/propertyDetails.js'),
+      auth: 'session',
+      validate: {
+        params: { propertyId: Joi.number().integer() }
+      }
+    }
+  },
+  {
     method: 'GET',
     path: '/properties/{propertyId}/payments',
     config: {

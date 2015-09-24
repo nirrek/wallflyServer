@@ -36,7 +36,7 @@ function postHandler(request, reply, userId) {
 
   pool.getConnection(function(err, connection) {
     connection.query({
-      sql: 'SELECT id FROM users WHERE email = ?',
+      sql: 'SELECT id FROM users WHERE email = ? AND userType = 3',
       values: [payload.ownerEmail]
     }, function(err, results) {
       if (err || !results[0]) {
@@ -45,15 +45,16 @@ function postHandler(request, reply, userId) {
       }
       var ownerUser = results[0].id;
 
-      connection.query({
-        sql: 'SELECT id FROM users WHERE email = ?',
-        values: [payload.tenantEmail]
-      }, function(err, results) {
-        if (err || !results[0]) {
-          connection.release();
-          return reply(err).code(500);
-        }
-        var tenantUser = results[0].id;
+      if (payload.tenantEmail != '') {
+        connection.query({
+          sql: 'SELECT id FROM users WHERE email = ? AND userType = 1',
+          values: [payload.tenantEmail]
+        }, function(err, results) {
+          if (err || !results[0]) {
+            connection.release();
+            return reply(err).code(500);
+          }
+          var tenantUser = results[0].id;
 
           connection.query({
             sql: 'INSERT INTO properties ' +
@@ -75,9 +76,34 @@ function postHandler(request, reply, userId) {
               return;
             }
 
+            reply('Property added successfully');
+          });
+        });
+      }
+
+      else {
+        connection.query({
+          sql: 'INSERT INTO properties ' +
+               '(agentId, ownerId, postcode, street, suburb, tenantId, photo) ' +
+               'VALUES (?, ?, ?, ?, ?, NULL, ?)',
+          values:[
+            userId,
+            ownerUser,
+            payload.postCode,
+            payload.streetAddress,
+            payload.suburb,
+            payload.dataUrl,
+          ],
+        }, function(err, results) {
+          connection.release();
+          if (err) {
+            reply(err).code(500);
+            return;
+          }
+
           reply('Property added successfully');
         });
-      });
+      }
     });
   });
 
