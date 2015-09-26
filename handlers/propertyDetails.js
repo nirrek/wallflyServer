@@ -7,6 +7,10 @@ function propertyDetails(request, reply) {
   else if (request.method === 'post') postHandler(request, reply);
 }
 
+
+// -----------------------------------------------------------------------------
+//  GET Handler
+// -----------------------------------------------------------------------------
 function getHandler(request, reply, propertyId) {
   var propertyId = request.params.propertyId;
 
@@ -20,8 +24,8 @@ function getHandler(request, reply, propertyId) {
     }, function(err, results) {
       connection.release();
       if (err) {
-        console.log('Error in propertyDetails.js', err);
-        return reply('Error').code(500);
+        console.log(err);
+        return reply(err.toString()).code(500);
       }
 
       var result = results[0];
@@ -34,95 +38,112 @@ function getHandler(request, reply, propertyId) {
 
 }
 
+
+// -----------------------------------------------------------------------------
+// POST Handler
+// -----------------------------------------------------------------------------
 function postHandler(request, reply, userId) {
   var payload = request.payload;
 
-  pool.getConnection(function(err, connection) {
-    if (payload.image == '') {
-      connection.query({
-        sql: 'SELECT id FROM users WHERE email = ? AND userType = 1',
-        values: [payload.tenantEmail]
-      }, function(err, results) {
-        if (err || !results[0]) {
-          connection.release();
-          return reply(err).code(500);
-        }
-        var tenantUser = results[0].id;
+  pool.getConnection(function(err, conn) {
+    var tenantEmail = payload.tenantEmail;
+    var propertyId = payload.propertyId;
+    var photo = payload.image;
 
-        connection.query({
-          sql: 'UPDATE properties ' +
-                 'SET tenantId = ? ' +
-                 'WHERE id = ?',
-          values: [
-            tenantUser,
-            payload.propertyId,
-          ],
-        }, function(err, results) {
-          connection.release();
-          if (err) {
-            console.log('Error in propertyDetails.js', err);
-            return reply('Error').code(500);
-          }
-
-          reply('Property updated successfully');
-        });
-      });
-    }
-
-    else if (payload.tenantEmail == '') {
-      connection.query({
-        sql: 'UPDATE properties ' +
-               'SET photo = ? ' +
-               'WHERE id = ?',
-        values: [
-          payload.image,
-          payload.propertyId,
-        ],
-      }, function(err, results) {
-        connection.release();
+    // If a new tenantEmail was provided, fetch the tenant's user model first.
+    if (tenantEmail) {
+      getUserByEmail({
+        connection: conn,
+        email: tenantEmail,
+      }, function(err, conn, data) {
         if (err) {
-          console.log('Error in propertyDetails.js', err);
-          return reply('Error').code(500);
+          conn.release();
+          console.error(err);
+          return reply(err.toString()).code(500);
         }
 
-        reply('Property updated successfully');
-      });
-    }
-
-    else {
-      connection.query({
-        sql: 'SELECT id FROM users WHERE email = ? AND userType = 1',
-        values: [payload.tenantEmail]
-      }, function(err, results) {
-        if (err || !results[0]) {
-          connection.release();
-          return reply(err).code(500);
-        }
-        var tenantUser = results[0].id;
-
-        connection.query({
-          sql: 'UPDATE properties ' +
-                 'SET tenantId = ?, ' +
-                 'photo = ? ' +
-                 'WHERE id = ?',
-          values: [
-            tenantUser,
-            payload.image,
-            payload.propertyId,
-          ],
-        }, function(err, results) {
-          connection.release();
-          if (err) {
-            console.log('Error in propertyDetails.js', err);
-            return reply('Error').code(500);
-          }
-
-          reply('Property updated successfully');
+        updatePropertyDetails({
+          connection: conn,
+          reply: reply,
+          id: propertyId,
+          tenantId: data.user.id,
+          photo: photo,
         });
       });
+      return;
+    }
+
+    updatePropertyDetails({
+      connection: conn,
+      reply: reply,
+      id: propertyId,
+      tenantId: null,
+      photo: photo,
+    });
+  });
+}
+
+
+/**
+ * Fetches a user by the provided email.
+ * @param  {Object}   options  Must provide a connection property for the
+ *                             current database connection.
+ * @param  {Function} callback Signature is (err, conn, data), conn is the
+ *                             db connection to allow chaining queries.
+ */
+function getUserByEmail(options, callback) {
+  console.log('getUserByEmail', options);
+
+  var email = options.email;
+  var conn = options.connection;
+
+  conn.query({
+    sql: 'SELECT id FROM users WHERE email = ? AND userType = 1',
+    values: [email]
+  }, function(err, results) {
+    var user = results[0];
+
+    if (err) { // DB error
+      callback(err, conn, null);
+    } else if (!user) { // No user found
+      var error = new Error('No user with email: ' + email);
+      callback(error, conn, null);
+    } else {
+      var data = { user: user };
+      callback(null, conn, data);
     }
   });
+}
 
+/**
+ * Update the given property with the given details and then closes the
+ * database connection. All the details are specified in the options object.
+ * @param  {Object} options Must include a `connection` prop for the db conn
+ *                          and a `reply` prop the hapi reply function.
+ */
+function updatePropertyDetails(options) {
+  var conn = options.connection;
+  var reply = options.reply;
+
+  conn.query({
+    sql: 'UPDATE properties ' +
+         'SET tenantId = ?, ' +
+         'photo = ? ' +
+         'WHERE id = ?',
+    values: [
+      options.tenantId,
+      options.photo,
+      options.id,
+    ],
+  }, function(err, results) {
+    conn.release();
+    if (err) {
+      console.log('Error updating property details', err);
+      return reply(err.toString()).code(500);
+    }
+
+    reply('Property updated successfully');
+  });
 }
 
 module.exports = propertyDetails;
