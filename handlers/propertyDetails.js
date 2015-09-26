@@ -92,8 +92,6 @@ function postHandler(request, reply, userId) {
  *                             db connection to allow chaining queries.
  */
 function getUserByEmail(options, callback) {
-  console.log('getUserByEmail', options);
-
   var email = options.email;
   var conn = options.connection;
 
