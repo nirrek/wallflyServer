@@ -98,7 +98,15 @@ server.route([
       handler: require('./handlers/userUpdate.js'),
       auth: 'session',
       validate: {
-        params: { userId: Joi.number().integer() }
+        params: { userId: Joi.number().integer() },
+        payload: {
+          username: Joi.string().alphanum().min(3).max(30),
+          firstName: Joi.string().alphanum().max(100),
+          lastName: Joi.string().alphanum().max(100),
+          phone: Joi.string().alphanum().max(10),
+          email: Joi.string().email(),
+          avatar: Joi.string(),
+        }
       }
     }
   },
