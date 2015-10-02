@@ -12,7 +12,7 @@ function userProperty(request, reply) {
 
   pool.getConnection(function(err, connection) {
     connection.query({
-      sql: 'SELECT street, suburb, postcode, photo, tenant.firstName as tenantFN, tenant.lastName as tenantLN, tenant.phone as tenantPhone, tenant.email as tenantEmail, ' +
+      sql: 'SELECT p.id, street, suburb, postcode, photo, tenant.firstName as tenantFN, tenant.lastName as tenantLN, tenant.phone as tenantPhone, tenant.email as tenantEmail, ' +
            'agent.firstName as agentFN, agent.lastName as agentLN, agent.phone as agentPhone, agent.email as agentEmail, ' +
            'owner.firstName as ownerFN, owner.lastName as ownerLN, owner.phone as ownerPhone, owner.email as ownerEmail ' +
            'FROM properties p, users tenant, users agent, users owner ' +
