@@ -274,6 +274,17 @@ server.route([
     }
   },
   {
+    method: 'PUT',
+    path: '/properties/{propertyId}/repairRequests',
+    config: {
+      handler: require('./handlers/propertyRepairRequests.js'),
+      auth: 'session',
+      validate: {
+        params: { propertyId: Joi.number().integer() }
+      }
+    }
+  },
+  {
     method: 'GET',
     path: '/properties/{propertyId}/inspectionReports',
     config: {
