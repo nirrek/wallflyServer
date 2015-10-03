@@ -45,8 +45,8 @@ function putHandler(request, reply, propertyId){
     conn.query({
       sql: 'UPDATE repair_requests ' +
            'SET status = ? ' + 
-           'WHERE id = ?',
-      values: [repairStatus, requestId],
+           'WHERE id = ? AND propertyId = ?',
+      values: [repairStatus, requestId, propertyId],
     }, function(err, results) {
       conn.release();
 
