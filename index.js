@@ -280,7 +280,10 @@ server.route([
       handler: require('./handlers/propertyRepairRequests.js'),
       auth: 'session',
       validate: {
-        params: { propertyId: Joi.number().integer() }
+        params: { propertyId: Joi.number().integer() },
+        payload: {
+          repairStatus: Joi.string().valid(['Submitted', 'Pending', 'Approved', 'Declined']),
+        }
       }
     }
   },

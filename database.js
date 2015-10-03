@@ -18,7 +18,7 @@ function initialize() {
   pool = mysql.createPool({
     connectionLimit: 10,
     host: 'localhost',
-    port: 3307,
+    port: 8889,
     user: 'root',
     password: 'root',
     database: 'wallfly'

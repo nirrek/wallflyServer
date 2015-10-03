@@ -44,7 +44,7 @@ function putHandler(request, reply, propertyId){
   pool.getConnection(function(err, conn) {
     conn.query({
       sql: 'UPDATE repair_requests ' +
-           'SET status = ?, ' + 
+           'SET status = ? ' + 
            'WHERE id = ?',
       values: [repairStatus, requestId],
     }, function(err, results) {
