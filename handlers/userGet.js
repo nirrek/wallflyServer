@@ -15,7 +15,7 @@ function userGet(request, reply) {
       values: [userId],
     }, function(err, results) {
       connection.release();
-      if (err) return reply('db error').code(400);
+      if (err) return reply('db error').code(500);
 
       var user = results[0];
       delete user.password; // remove sensitive data before returning.
