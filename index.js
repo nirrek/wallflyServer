@@ -282,6 +282,8 @@ server.route([
       validate: {
         params: { propertyId: Joi.number().integer() },
         payload: {
+          propertyId: Joi.number().integer().required(),
+          requestId: Joi.number().integer().required(),
           repairStatus: Joi.string().valid(['Submitted', 'Pending', 'Approved', 'Declined']),
         }
       }

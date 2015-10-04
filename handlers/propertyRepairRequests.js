@@ -38,9 +38,8 @@ function getHandler(request, reply, propertyId){
 }
 
 function putHandler(request, reply, propertyId){
-  var repairStatus = request.payload.requestStatus;
+  var repairStatus = request.payload.repairStatus;
   var requestId = request.payload.requestId;
-
   pool.getConnection(function(err, conn) {
     conn.query({
       sql: 'UPDATE repair_requests ' +
