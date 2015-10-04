@@ -280,6 +280,22 @@ server.route([
     }
   },
   {
+    method: 'PUT',
+    path: '/properties/{propertyId}/repairRequests',
+    config: {
+      handler: require('./handlers/propertyRepairRequests.js'),
+      auth: 'session',
+      validate: {
+        params: { propertyId: Joi.number().integer() },
+        payload: {
+          propertyId: Joi.number().integer().required(),
+          requestId: Joi.number().integer().required(),
+          repairStatus: Joi.string().valid(['Submitted', 'Pending', 'Approved', 'Declined']),
+        }
+      }
+    }
+  },
+  {
     method: 'GET',
     path: '/properties/{propertyId}/inspectionReports',
     config: {

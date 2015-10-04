@@ -7,7 +7,12 @@ function propertyRepairRequests(request, reply) {
 
   // TODO add access control. Currently any authed user can fetch the details
   // of any property, not just one they are associated with.
+  
+  if (request.method === 'get') getHandler(request, reply, propertyId);
+  else if (request.method === 'put') putHandler(request, reply, propertyId);
+}
 
+function getHandler(request, reply, propertyId){
   pool.getConnection(function(err, connection) {
     connection.query({
       sql: 'SELECT * FROM repair_requests WHERE propertyId = ?',
@@ -30,7 +35,24 @@ function propertyRepairRequests(request, reply) {
       reply(results);
     });
   });
+}
 
+function putHandler(request, reply, propertyId){
+  var repairStatus = request.payload.repairStatus;
+  var requestId = request.payload.requestId;
+  pool.getConnection(function(err, conn) {
+    conn.query({
+      sql: 'UPDATE repair_requests ' +
+           'SET status = ? ' + 
+           'WHERE id = ? AND propertyId = ?',
+      values: [repairStatus, requestId, propertyId],
+    }, function(err, results) {
+      conn.release();
+
+      if (err) return reply(err.toString()).code(500);
+      return reply('Request updated');
+    });
+  });
 }
 
 module.exports = propertyRepairRequests;
