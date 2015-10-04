@@ -47,6 +47,12 @@ server.route([
     path: '/login',
     config: {
       handler: require('./handlers/login.js'),
+      validate: {
+        payload: {
+          username: Joi.string().alphanum().min(3).max(30),
+          password: Joi.string().regex(/[a-zA-Z0-9]{5,100}/),
+        }
+      }
     }
   },
   {
@@ -65,7 +71,7 @@ server.route([
       validate: {
         payload: {
           username: Joi.string().alphanum().min(3).max(30),
-          password: Joi.string().regex(/[a-zA-Z0-9]{3,30}/),
+          password: Joi.string().regex(/[a-zA-Z0-9]{5,100}/),
           firstName: Joi.string().alphanum().max(100),
           lastName: Joi.string().alphanum().max(100),
           phone: Joi.string().alphanum().max(10),
