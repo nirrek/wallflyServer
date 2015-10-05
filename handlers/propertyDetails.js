@@ -19,56 +19,25 @@ function getHandler(request, reply) {
 
   pool.getConnection(function(err, connection) {
     connection.query({
-      sql: 'SELECT p.id, street, suburb, postcode, photo, tenantId, agentId, ownerId, '+
-           'owner.email as ownerEmail ' +
-           'FROM properties p, users owner ' +
-           'WHERE p.id = ? ' +
-             'AND p.ownerId = owner.id',
+      sql: 'SELECT p.id, street, suburb, postcode, photo, tenantId, agentId ownerId, '+
+           't.email as tenantEmail, o.email as ownerEmail ' +
+           'FROM properties p ' +
+           'LEFT JOIN users t ON p.tenantId = t.id ' +
+           'JOIN users o ON p.ownerId = o.id ' +
+           'WHERE p.id = ?',
       values: [propertyId],
     }, function(err, results) {
+      connection.release();
       if (err) {
         console.log(err);
         return reply(err.toString()).code(500);
       }
 
       var result = results[0];
-      if (!result) {
-        console.log('No result for propertyId = ' + propertyId)
-      }
-
-      var tenantId = result.tenantId;
-
-      if (tenantId != null) {
-        connection.query({
-          sql: 'SELECT email as tenantEmail '+
-               'FROM users ' +
-               'WHERE id = ?',
-          values: [tenantId],
-        }, function(err, results) {
-          connection.release();
-          if (err) {
-            console.log(err);
-            return reply(err.toString()).code(500);
-          }
-
-          var tenantEmail = results[0];
-
-          if (!tenantEmail) {
-            console.log('No result for tenant email = ' + tenantId)
-          }
-
-          result.tenantEmail = tenantEmail.tenantEmail;
-          reply(result);
-        });
-      }
-
-      else {
-        connection.release();
-        reply(result);
-      }
+      if (!result) console.log('No result for propertyId = ' + propertyId);
+      reply(result);
     });
   });
-
 }
 
 
