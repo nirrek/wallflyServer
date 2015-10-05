@@ -17,7 +17,7 @@ function userProperty(request, reply) {
            'owner.firstName as ownerFN, owner.lastName as ownerLN, owner.phone as ownerPhone, owner.email as ownerEmail ' +
            'FROM properties p, users tenant, users agent, users owner ' +
            'WHERE tenantId = ? ' +
-             'AND p.tenantId = tenant.id ' +
+             'AND tenant.id = p.tenantId ' +
              'AND p.agentId = agent.id ' +
              'AND p.ownerId = owner.id',
       values: [userId],
