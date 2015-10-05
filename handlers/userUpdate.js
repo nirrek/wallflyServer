@@ -1,20 +1,36 @@
-function userUpdate(request, reply) {
-  // TODO figure out if there is middleware for parsing this into a data js obj
-  var userId = parseInt(request.params.userId, 10);
+var database = require('../database.js');
+var pool = database.getConnectionPool();
 
-  var name = request.payload.name
+function userUpdate(request, reply) {
+  var userId = request.params.userId;
+  var username = request.payload.username; // TODO remove username once schema updated
+  var firstName = request.payload.firstName
+  var lastName = request.payload.lastName
+  var phone = request.payload.phone
+  var email = request.payload.email
+  var avatar = request.payload.avatar
 
   if (request.auth.artifacts.id !== userId) {
-    return reply('You arent allowed to do this');
+    return reply('Unauthorized request').code(401);
   }
 
-  connection.query({
-    sql: 'UPDATE `users` SET name = ? where id = ?',
-    values: [name, userId],
-  }, function(error, results) {
-    if (error) return reply('error');
+  pool.getConnection(function(err, conn) {
+    conn.query({
+      sql: 'UPDATE users ' +
+           'SET username = ?, ' +  // TODO remove username once schema updated
+           'firstName = ?, ' +
+           'lastName = ?, ' +
+           'phone = ?, ' +
+           'email = ?, ' +
+           'avatar = ? ' +
+           'WHERE id = ?',
+      values: [username, firstName, lastName, phone, email, avatar, userId],
+    }, function(err, results) {
+      conn.release();
 
-    return reply('successfully updated ' + name);
+      if (err) return reply(err.toString()).code(500);
+      return reply('User updated');
+    });
   });
 }
 
