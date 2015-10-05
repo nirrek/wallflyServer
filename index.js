@@ -26,11 +26,11 @@ var pool = database.getConnectionPool();
 
 // Setup cookie authentication scheme.
 server.register(require('hapi-auth-cookie'), function (err) {
-    server.auth.strategy('session', 'cookie', {
-        password: 'secret',
-        cookie: 'sid',
-        isSecure: false, // don't enforce https
-    });
+  server.auth.strategy('session', 'cookie', {
+    password: 'secret',
+    cookie: 'sid',
+    isSecure: false, // don't enforce https
+  });
 });
 
 // Setup server routes
@@ -47,6 +47,12 @@ server.route([
     path: '/login',
     config: {
       handler: require('./handlers/login.js'),
+      validate: {
+        payload: {
+          username: Joi.string().alphanum().min(3).max(30),
+          password: Joi.string().regex(/[a-zA-Z0-9]{5,100}/),
+        }
+      }
     }
   },
   {
@@ -65,7 +71,7 @@ server.route([
       validate: {
         payload: {
           username: Joi.string().alphanum().min(3).max(30),
-          password: Joi.string().regex(/[a-zA-Z0-9]{3,30}/),
+          password: Joi.string().regex(/[a-zA-Z0-9]{5,100}/),
           firstName: Joi.string().alphanum().max(100),
           lastName: Joi.string().alphanum().max(100),
           phone: Joi.string().alphanum().max(10),
@@ -294,6 +300,22 @@ server.route([
     }
   },
   {
+    method: 'PUT',
+    path: '/properties/{propertyId}/repairRequests',
+    config: {
+      handler: require('./handlers/propertyRepairRequests.js'),
+      auth: 'session',
+      validate: {
+        params: { propertyId: Joi.number().integer() },
+        payload: {
+          propertyId: Joi.number().integer().required(),
+          requestId: Joi.number().integer().required(),
+          repairStatus: Joi.string().valid(['Submitted', 'Pending', 'Approved', 'Declined']),
+        }
+      }
+    }
+  },
+  {
     method: 'GET',
     path: '/properties/{propertyId}/inspectionReports',
     config: {
@@ -325,7 +347,59 @@ server.route([
         params: { propertyId: Joi.number().integer() }
       }
     }
-  }
+  },
+  {
+    // Gets the contacts for a given property for the currently authed user.
+    // Contacts are other users the user can liase with (eg for a agent this
+    // will include both the tenant and owner of the property).
+    method: 'GET',
+    path: '/properties/{propertyId}/contacts',
+    config: {
+      handler: require('./handlers/propertyContacts.js'),
+      auth: 'session',
+      validate: {
+        params: { propertyId: Joi.number().integer() },
+      }
+    }
+  },
+
+
+  // ---------------------------------------------------------------------------
+  // Messages Resource Routes
+  // ---------------------------------------------------------------------------
+  {
+    // Returns the 20 most recent messages exchanged between the authenticated
+    // user from and the user specified by the partnerId.
+    method: 'GET',
+    path: '/messages',
+    config: {
+      handler: require('./handlers/messages.js'),
+      auth: 'session',
+      validate: {
+        query: {
+          partnerId: Joi.number().integer().positive(),
+          count: Joi.number().integer().positive().default(20),
+          offset: Joi.number().integer().positive().default(0),
+        }
+      }
+    }
+  },
+  {
+    // Sends a new message from the authenticated user to the receiverId
+    method: 'POST',
+    path: '/messages',
+    config: {
+      handler: require('./handlers/messages.js'),
+      auth: 'session',
+      validate: {
+        payload: {
+          receiverId: Joi.number().integer().positive(),
+          message: Joi.string(),
+        }
+      }
+    }
+  },
+
 ]);
 
 server.start(function() {
