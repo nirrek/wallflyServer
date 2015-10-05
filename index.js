@@ -261,12 +261,12 @@ server.route([
         params: { propertyId: Joi.number().integer() },
         payload: {
           propertyId: Joi.number().integer().required(),
-          tenantEmail: Joi.string().email().allow(''),
-          ownerEmail: Joi.string().email(),
-          street: Joi.string(),
-          suburb: Joi.string(),
-          postcode: Joi.string(),
-          photo: Joi.string(),
+          tenantEmail: Joi.string().email().max(255).allow(''),
+          ownerEmail: Joi.string().email().max(255),
+          street: Joi.string().min(1).max(500),
+          suburb: Joi.string().min(1).max(500),
+          postcode: Joi.string().min(4).max(4),
+          photo: Joi.string().max(60000),
         }
       }
     }
