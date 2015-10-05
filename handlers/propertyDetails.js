@@ -58,14 +58,15 @@ function getHandler(request, reply) {
           }
 
           result.tenantEmail = tenantEmail.tenantEmail;
+          console.log(result);
+          reply(result);
         });
       }
 
       else {
         connection.release();
+        reply(result);
       }
-
-      reply(result);
     });
   });
 
