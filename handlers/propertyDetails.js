@@ -11,7 +11,7 @@ function propertyDetails(request, reply) {
 // -----------------------------------------------------------------------------
 //  GET Handler
 // -----------------------------------------------------------------------------
-function getHandler(request, reply, propertyId) {
+function getHandler(request, reply) {
   var propertyId = request.params.propertyId;
 
   // TODO add access control. Currently any authed user can fetch the details
@@ -19,7 +19,7 @@ function getHandler(request, reply, propertyId) {
 
   pool.getConnection(function(err, connection) {
     connection.query({
-      sql: 'SELECT p.id, street, suburb, postcode, photo, tenantId, agentId ownerId, '+
+      sql: 'SELECT p.id, street, suburb, postcode, photo, tenantId, agentId, ownerId, '+
            'tenant.email as tenantEmail, owner.email as ownerEmail ' +
            'FROM properties p, users tenant, users owner ' +
            'WHERE p.id = ? ' +
@@ -47,7 +47,7 @@ function getHandler(request, reply, propertyId) {
 // -----------------------------------------------------------------------------
 // POST Handler
 // -----------------------------------------------------------------------------
-function postHandler(request, reply, userId) {
+function postHandler(request, reply) {
   var payload = request.payload;
 
   pool.getConnection(function(err, conn) {
@@ -60,9 +60,10 @@ function postHandler(request, reply, userId) {
     var photo = payload.photo;
 
 
-    getOwnerByEmail({
+    getUserByEmail({
       connection: conn,
       email: ownerEmail,
+      userType: 3,
     }, function(err, conn, data) {
       if (err) {
         conn.release();
@@ -74,9 +75,10 @@ function postHandler(request, reply, userId) {
 
       // If a new tenantEmail was provided, fetch the tenant's user model first.
       if (tenantEmail) {
-        getTenantByEmail({
+        getUserByEmail({
           connection: conn,
           email: tenantEmail,
+          userType: 1,
         }, function(err, conn, data) {
           if (err) {
             conn.release();
@@ -117,49 +119,21 @@ function postHandler(request, reply, userId) {
 
 
 /**
- * Fetches a tenant by the provided email.
+ * Fetches a user by the provided email.
  * @param  {Object}   options  Must provide a connection property for the
  *                             current database connection.
  * @param  {Function} callback Signature is (err, conn, data), conn is the
  *                             db connection to allow chaining queries.
  */
-function getTenantByEmail(options, callback) {
+function getUserByEmail(options, callback) {
   var email = options.email;
   var conn = options.connection;
+  var type = options.userType
 
   conn.query({
-    sql: 'SELECT id FROM users WHERE email = ? AND userType = 1',
-    values: [email]
-  }, function(err, results) {
-    var user = results[0];
-
-    if (err) { // DB error
-      callback(err, conn, null);
-    } else if (!user) { // No user found
-      var error = new Error('No user with email: ' + email);
-      callback(error, conn, null);
-    } else {
-      var data = { user: user };
-      callback(null, conn, data);
-    }
-  });
-}
-
-
-/**
- * Fetches an owner by the provided email.
- * @param  {Object}   options  Must provide a connection property for the
- *                             current database connection.
- * @param  {Function} callback Signature is (err, conn, data), conn is the
- *                             db connection to allow chaining queries.
- */
-function getOwnerByEmail(options, callback) {
-  var email = options.email;
-  var conn = options.connection;
-
-  conn.query({
-    sql: 'SELECT id FROM users WHERE email = ? AND userType = 3',
-    values: [email]
+    sql: 'SELECT id FROM users WHERE email = ? AND userType = ?',
+    values: [email,
+      type]
   }, function(err, results) {
     var user = results[0];
 
