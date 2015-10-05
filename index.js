@@ -261,8 +261,12 @@ server.route([
         params: { propertyId: Joi.number().integer() },
         payload: {
           propertyId: Joi.number().integer().required(),
-          tenantEmail: Joi.string().email(),
-          image: Joi.string(),
+          tenantEmail: Joi.string().email().allow(''),
+          ownerEmail: Joi.string().email(),
+          street: Joi.string(),
+          suburb: Joi.string(),
+          postcode: Joi.string(),
+          photo: Joi.string(),
         }
       }
     }

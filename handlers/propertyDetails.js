@@ -19,7 +19,12 @@ function getHandler(request, reply, propertyId) {
 
   pool.getConnection(function(err, connection) {
     connection.query({
-      sql: 'SELECT * FROM properties p WHERE p.id = ?',
+      sql: 'SELECT p.id, street, suburb, postcode, photo, tenantId, agentId ownerId, '+
+           'tenant.email as tenantEmail, owner.email as ownerEmail ' +
+           'FROM properties p, users tenant, users owner ' +
+           'WHERE p.id = ? ' +
+             'AND p.tenantId = tenant.id ' +
+             'AND p.ownerId = owner.id',
       values: [propertyId],
     }, function(err, results) {
       connection.release();
@@ -47,56 +52,113 @@ function postHandler(request, reply, userId) {
 
   pool.getConnection(function(err, conn) {
     var tenantEmail = payload.tenantEmail;
+    var ownerEmail = payload.ownerEmail;
+    var street = payload.street;
+    var suburb = payload.suburb;
+    var postcode = payload.postcode;
     var propertyId = payload.propertyId;
-    var photo = payload.image;
+    var photo = payload.photo;
 
-    // If a new tenantEmail was provided, fetch the tenant's user model first.
-    if (tenantEmail) {
-      getUserByEmail({
-        connection: conn,
-        email: tenantEmail,
-      }, function(err, conn, data) {
-        if (err) {
-          conn.release();
-          console.error(err);
-          return reply(err.toString()).code(500);
-        }
 
-        updatePropertyDetails({
-          connection: conn,
-          reply: reply,
-          id: propertyId,
-          tenantId: data.user.id,
-          photo: photo,
-        });
-      });
-      return;
-    }
-
-    updatePropertyDetails({
+    getOwnerByEmail({
       connection: conn,
-      reply: reply,
-      id: propertyId,
-      tenantId: null,
-      photo: photo,
+      email: ownerEmail,
+    }, function(err, conn, data) {
+      if (err) {
+        conn.release();
+        console.error(err);
+        return reply(err.toString()).code(500);
+      }
+
+      ownerId = data.user.id;
+
+      // If a new tenantEmail was provided, fetch the tenant's user model first.
+      if (tenantEmail) {
+        getTenantByEmail({
+          connection: conn,
+          email: tenantEmail,
+        }, function(err, conn, data) {
+          if (err) {
+            conn.release();
+            console.error(err);
+            return reply(err.toString()).code(500);
+          }
+
+          updatePropertyDetails({
+            connection: conn,
+            reply: reply,
+            id: propertyId,
+            tenantId: data.user.id,
+            ownerId: ownerId,
+            street: street,
+            suburb: suburb,
+            postcode: postcode,
+            photo: photo,
+          });
+        });
+        return;
+      }
+
+      updatePropertyDetails({
+        connection: conn,
+        reply: reply,
+        id: propertyId,
+        tenantId: null,
+        ownerId: ownerId,
+        street: street,
+        suburb: suburb,
+        postcode: postcode,
+        photo: photo,
+      });
     });
+    return;
   });
 }
 
 
 /**
- * Fetches a user by the provided email.
+ * Fetches a tenant by the provided email.
  * @param  {Object}   options  Must provide a connection property for the
  *                             current database connection.
  * @param  {Function} callback Signature is (err, conn, data), conn is the
  *                             db connection to allow chaining queries.
  */
-function getUserByEmail(options, callback) {
+function getTenantByEmail(options, callback) {
   var email = options.email;
   var conn = options.connection;
 
   conn.query({
     sql: 'SELECT id FROM users WHERE email = ? AND userType = 1',
+    values: [email]
+  }, function(err, results) {
+    var user = results[0];
+
+    if (err) { // DB error
+      callback(err, conn, null);
+    } else if (!user) { // No user found
+      var error = new Error('No user with email: ' + email);
+      callback(error, conn, null);
+    } else {
+      var data = { user: user };
+      callback(null, conn, data);
+    }
+  });
+}
+
+
+/**
+ * Fetches an owner by the provided email.
+ * @param  {Object}   options  Must provide a connection property for the
+ *                             current database connection.
+ * @param  {Function} callback Signature is (err, conn, data), conn is the
+ *                             db connection to allow chaining queries.
+ */
+function getOwnerByEmail(options, callback) {
+  var email = options.email;
+  var conn = options.connection;
+
+  conn.query({
+    sql: 'SELECT id FROM users WHERE email = ? AND userType = 3',
     values: [email]
   }, function(err, results) {
     var user = results[0];
@@ -126,10 +188,18 @@ function updatePropertyDetails(options) {
   conn.query({
     sql: 'UPDATE properties ' +
          'SET tenantId = ?, ' +
+         'ownerId = ?, ' +
+         'street = ?, ' +
+         'suburb = ?, ' +
+         'postcode = ?, ' +
          'photo = ? ' +
          'WHERE id = ?',
     values: [
       options.tenantId,
+      options.ownerId,
+      options.street,
+      options.suburb,
+      options.postcode,
       options.photo,
       options.id,
     ],
