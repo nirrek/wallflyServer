@@ -267,7 +267,7 @@ server.route([
         params: { propertyId: Joi.number().integer() },
         payload: {
           propertyId: Joi.number().integer().required(),
-          tenantEmail: Joi.string().email().max(255).allow(''),
+          tenantEmail: Joi.string().email().max(255).allow(['', null]),
           ownerEmail: Joi.string().email().max(255),
           street: Joi.string().min(1).max(500),
           suburb: Joi.string().min(1).max(500),
