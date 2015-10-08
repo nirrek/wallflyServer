@@ -1,13 +1,13 @@
 # ************************************************************
 # Sequel Pro SQL dump
-# Version 4135
+# Version 4499
 #
 # http://www.sequelpro.com/
-# http://code.google.com/p/sequel-pro/
+# https://github.com/sequelpro/sequelpro
 #
-# Host: localhost (MySQL 5.5.38)
+# Host: 127.0.0.1 (MySQL 5.6.26)
 # Database: wallfly
-# Generation Time: 2015-09-13 09:36:08 +0000
+# Generation Time: 2015-10-08 13:47:10 +0000
 # ************************************************************
 
 
@@ -27,8 +27,9 @@ DROP TABLE IF EXISTS `events`;
 
 CREATE TABLE `events` (
   `id` int(11) NOT NULL AUTO_INCREMENT,
-  `date` datetime NOT NULL,
   `event` varchar(1024) NOT NULL,
+  `startdate` datetime NOT NULL,
+  `enddate` datetime NOT NULL,
   `propertyId` int(11) NOT NULL,
   PRIMARY KEY (`id`),
   KEY `propertyId` (`propertyId`),
@@ -38,9 +39,9 @@ CREATE TABLE `events` (
 LOCK TABLES `events` WRITE;
 /*!40000 ALTER TABLE `events` DISABLE KEYS */;
 
-INSERT INTO `events` (`id`, `date`, `event`, `propertyId`)
+INSERT INTO `events` (`id`, `event`, `startdate`, `enddate`, `propertyId`)
 VALUES
-	(1,'2015-08-03 13:30:00','Plumber fixing water system',3);
+	(1,'Plumber fixing water system','2015-10-20 13:30:00','2015-10-20 13:30:00',3);
 
 /*!40000 ALTER TABLE `events` ENABLE KEYS */;
 UNLOCK TABLES;
@@ -55,6 +56,7 @@ CREATE TABLE `inspections` (
   `id` int(11) NOT NULL AUTO_INCREMENT,
   `date` timestamp NOT NULL DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
   `comments` varchar(2048) NOT NULL,
+  `photo` varchar(60000) NOT NULL,
   `propertyId` int(11) NOT NULL,
   `inspectorId` int(11) NOT NULL,
   PRIMARY KEY (`id`),
@@ -67,9 +69,9 @@ CREATE TABLE `inspections` (
 LOCK TABLES `inspections` WRITE;
 /*!40000 ALTER TABLE `inspections` DISABLE KEYS */;
 
-INSERT INTO `inspections` (`id`, `date`, `comments`, `propertyId`, `inspectorId`)
+INSERT INTO `inspections` (`id`, `date`, `comments`, `photo`, `propertyId`, `inspectorId`)
 VALUES
-	(1,'2015-08-01 19:24:26','Some damage to the wall in the hallway. Otherwise generally clean and tidy.',3,6);
+	(1,'2015-08-01 19:24:26','Some damage to the wall in the hallway. Otherwise generally clean and tidy.','',3,6);
 
 /*!40000 ALTER TABLE `inspections` ENABLE KEYS */;
 UNLOCK TABLES;
@@ -243,6 +245,7 @@ CREATE TABLE `users` (
   `phone` varchar(10) NOT NULL,
   `email` varchar(255) NOT NULL,
   `userType` int(11) NOT NULL,
+  `avatar` text,
   PRIMARY KEY (`id`),
   UNIQUE KEY `username` (`username`),
   UNIQUE KEY `email` (`email`),
@@ -253,12 +256,13 @@ CREATE TABLE `users` (
 LOCK TABLES `users` WRITE;
 /*!40000 ALTER TABLE `users` DISABLE KEYS */;
 
-INSERT INTO `users` (`id`, `username`, `password`, `firstName`, `lastName`, `phone`, `email`, `userType`)
+INSERT INTO `users` (`id`, `username`, `password`, `firstName`, `lastName`, `phone`, `email`, `userType`, `avatar`)
 VALUES
-	(5,'kerrin','$2a$08$4gcWPNg.QaZUR62GHtLA0uYeU.g0ypH38Bx9krwVaMWVeTVHq.lS6','kerrin','english','0432123123','k@k.com',1),
-	(6,'agent','$2a$08$lcUjO.hx3ERc/HoPwMcISOuV1k9BUZXi3mCKmSwavQ1oLAoQUMDtW','agent','agent','38121234','agent@agent.com',2),
-	(7,'owner','$2a$08$LfEyo2H9j3rvZzxLXE2oIORg0y9LNDoXuV4EIxeHZ22d/IoQKFt0C','owner','owner','38004321','owner@owner.com',3),
-	(8,'jim','$2a$08$LM9y9VmgsM7slqB8OHXHL.cxTJivNz77ZfIseUeD/0ppKFA.o3gNq','jim','jim','12341234','jim@jim.com',1);
+	(5,'kerrin','$2a$08$4gcWPNg.QaZUR62GHtLA0uYeU.g0ypH38Bx9krwVaMWVeTVHq.lS6','kerrin','english','0432123123','k@k.com',1,NULL),
+	(6,'agent','$2a$08$lcUjO.hx3ERc/HoPwMcISOuV1k9BUZXi3mCKmSwavQ1oLAoQUMDtW','agent','agent','38121234','agent@agent.com',2,NULL),
+	(7,'owner','$2a$08$LfEyo2H9j3rvZzxLXE2oIORg0y9LNDoXuV4EIxeHZ22d/IoQKFt0C','owner','owner','38004321','owner@owner.com',3,NULL),
+	(8,'jim','$2a$08$LM9y9VmgsM7slqB8OHXHL.cxTJivNz77ZfIseUeD/0ppKFA.o3gNq','jim','jim','12341234','jim@jim.com',1,NULL),
+	(9,'jane','$2a$08$u5Uf70k52tp0nCZpvNclpOdfJCg2L58XjhinzSHgKA2yyj4xCnWtG','jane','jane','1234123123','jane@jane.com',1,'data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAGQAAABkCAIAAAD/gAIDAAABOUlEQVR4nO3csQnCUBRAUZVs4SbuYW3vDlbuYO+mbqDcfMJHPacVk3h5xeeB2Z+Pp91at8v1zaf352P1lUds91SH1d/8Q2IFYgViBWIFYgViBWIFYgXL+/Pu7xn5vSYrECsQKxArECsQKxArECsQK9iP7OBHjJykZ233TVYgViBWIFYgViBWIFYgViBWsOEJftZ2f7vzvckKxArECsQKxArECsQKxArECsQKxArECsQKxArECsQKxArECsQKPuzgt9ujj2zKZz2VyQrECsQKxArECsQKxArECsQKxArECsQKxArECsQKxArECsQKxAqWWTf+xnfgmKxArECsQKxArECsQKxArECsYOifrLPeJzPrviYrECsQKxArECsQKxArECsQKxArECsQKxArECsQKxArECsQKxAreAEfMR/seuVuvAAAAABJRU5ErkJggg==');
 
 /*!40000 ALTER TABLE `users` ENABLE KEYS */;
 UNLOCK TABLES;
