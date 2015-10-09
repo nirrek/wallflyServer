@@ -74,7 +74,7 @@ server.route([
           password: Joi.string().regex(/[a-zA-Z0-9]{5,100}/),
           firstName: Joi.string().alphanum().max(100),
           lastName: Joi.string().alphanum().max(100),
-          phone: Joi.string().alphanum().max(10),
+          phone: Joi.string().alphanum().min(8).max(10),
           email: Joi.string().email(),
           userType: Joi.string().valid(['tenant', 'agent', 'owner']),
           avatar: Joi.string(),
