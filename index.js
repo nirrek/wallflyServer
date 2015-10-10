@@ -355,7 +355,12 @@ server.route([
       handler: require('./handlers/propertyCalendarEvents.js'),
       auth: 'session',
       validate: {
-        params: { propertyId: Joi.number().integer() }
+        payload: {
+          eventDesc: Joi.string().required(),
+          date: Joi.date().format('DD/MM/YYYY'),
+          time: Joi.date().format('h:mm a'),
+          propertyId: Joi.number().integer()
+        },
       }
     }
   },
