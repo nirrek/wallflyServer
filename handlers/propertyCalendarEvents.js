@@ -35,17 +35,17 @@ function getHandler(request, reply) {
 
 function postHandler(request, reply) {
   var payload = request.payload;
+  var dateTime = new Date(payload.date.toDateString() + ' ' + payload.time.toTimeString());
   var propertyId = request.params.propertyId;
 
   pool.getConnection(function(err, connection) {
     connection.query({
       sql: 'INSERT INTO events ' +
-           '(event, startdate, enddate, propertyId) ' +
-           'VALUES (?, ?, ?, ?)',
+           '(event, date, propertyId) ' +
+           'VALUES (?, ?, ?)',
       values:[
-        payload.eventdesc,
-        payload.startDateTime,
-        payload.endDateTime,
+        payload.eventDesc,
+        dateTime,
         propertyId
       ],
     }, function(err, results) {
