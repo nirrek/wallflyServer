@@ -242,6 +242,14 @@ server.route([
       validate: {
         query: {
           userId: Joi.number().integer()
+        },
+        payload: {
+          tenantEmail: Joi.string().email().max(255).allow(['', null]),
+          ownerEmail: Joi.string().email().max(255),
+          streetAddress: Joi.string().min(1).max(500),
+          suburb: Joi.string().min(1).max(500),
+          postCode: Joi.string().min(4).max(4),
+          dataUrl: Joi.string(),
         }
       }
     }
