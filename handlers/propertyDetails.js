@@ -20,10 +20,13 @@ function getHandler(request, reply) {
   pool.getConnection(function(err, connection) {
     connection.query({
       sql: 'SELECT p.id, street, suburb, postcode, photo, tenantId, agentId ownerId, '+
-           't.email as tenantEmail, o.email as ownerEmail ' +
+           't.firstName as tenantFN, t.lastName as tenantLN, t.phone as tenantPhone, t.email as tenantEmail, ' +
+           'o.firstName as ownerFN, o.lastName as ownerLN, o.phone as ownerPhone, o.email as ownerEmail, ' +
+           'a.firstName as agentFN, a.lastName as agentLN, a.phone as agentPhone, a.email as agentEmail ' +
            'FROM properties p ' +
            'LEFT JOIN users t ON p.tenantId = t.id ' +
            'JOIN users o ON p.ownerId = o.id ' +
+           'JOIN users a ON p.agentId = a.id ' +
            'WHERE p.id = ?',
       values: [propertyId],
     }, function(err, results) {
