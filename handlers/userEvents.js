@@ -11,13 +11,16 @@ function userEvents(request, reply) {
 
   pool.getConnection(function(err, connection) {
     connection.query({
-      sql: 'SELECT date, event ' +
+      sql: 'SELECT * ' +
            'FROM events e, properties p ' +
            'WHERE e.propertyId = p.id and p.tenantId = ?',
       values: [userId],
     }, function(err, results) {
       connection.release();
-      if (err) return reply(err);
+      if (err) {
+        console.log(err);
+        return reply(err);
+      }
 
       reply(results);
     });
