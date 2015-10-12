@@ -19,6 +19,11 @@ function userInspections(request, reply) {
         return reply(err);
       }
 
+      if (results.length === 0) {
+        connection.release();
+        return reply('No results');
+      }
+
       connection.query({
         sql: 'SELECT date, comments, firstName, lastName, street, suburb ' +
              'FROM inspections i, users u, properties p ' +

@@ -12,7 +12,8 @@ function loginHandler(request, reply) {
     // too large, the browser will drop the cookie on the floor. This leads to
     // very confusing bugs.
     request.auth.session.set({
-      id: user.id
+      id: user.id,
+      type: user.type,
     });
 
     return reply(user);

@@ -7,7 +7,7 @@ function propertyRepairRequests(request, reply) {
 
   // TODO add access control. Currently any authed user can fetch the details
   // of any property, not just one they are associated with.
-  
+
   if (request.method === 'get') getHandler(request, reply, propertyId);
   else if (request.method === 'put') putHandler(request, reply, propertyId);
 }
@@ -26,11 +26,6 @@ function getHandler(request, reply, propertyId){
 
       if (results.length === 0) {
         console.log('No result for propertyId = ' + propertyId)
-      } else {
-        results = results.map(function(result) {
-          result.photo = getPhotoUrl(result.photo)
-          return result;
-        });
       }
       reply(results);
     });
@@ -43,7 +38,7 @@ function putHandler(request, reply, propertyId){
   pool.getConnection(function(err, conn) {
     conn.query({
       sql: 'UPDATE repair_requests ' +
-           'SET status = ? ' + 
+           'SET status = ? ' +
            'WHERE id = ? AND propertyId = ?',
       values: [repairStatus, requestId, propertyId],
     }, function(err, results) {
