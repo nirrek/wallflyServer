@@ -15,7 +15,7 @@ function getHandler(request, reply) {
 
   pool.getConnection(function(err, connection) {
     connection.query({
-      sql: 'SELECT * FROM events WHERE propertyId = ?',
+      sql: 'SELECT * FROM events WHERE propertyId = ? ORDER BY date ASC',
       values: [propertyId],
     }, function(err, results) {
       connection.release();
@@ -41,11 +41,12 @@ function postHandler(request, reply) {
   pool.getConnection(function(err, connection) {
     connection.query({
       sql: 'INSERT INTO events ' +
-           '(event, date, propertyId) ' +
-           'VALUES (?, ?, ?)',
+           '(event, date, notes, propertyId) ' +
+           'VALUES (?, ?, ?, ?)',
       values:[
         payload.eventDesc,
         dateTime,
+        payload.notes,
         propertyId
       ],
     }, function(err, results) {

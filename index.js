@@ -359,6 +359,7 @@ server.route([
           eventDesc: Joi.string().required(),
           date: Joi.date().format('DD/MM/YYYY'),
           time: Joi.date().format('h:mm a'),
+          notes: Joi.optional(),
           propertyId: Joi.number().integer()
         },
       }
