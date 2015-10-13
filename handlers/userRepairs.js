@@ -7,7 +7,6 @@ function userRepairs(request, reply) {
   if (request.auth.artifacts.id !== userId) {
     return reply('You arent allowed to do this');
   }
-
   if      (request.method === 'get')  getHandler(request, reply, userId);
   else if (request.method === 'post') postHandler(request, reply, userId);
 }
@@ -30,8 +29,6 @@ function postHandler(request, reply, userId) {
   var payload = request.payload;
 
   pool.getConnection(function(err, connection) {
-    var image = request.payload.image;
-    var requesttId = request.payload.requestId;
     connection.query({
       sql: 'SELECT id FROM properties WHERE tenantId = ?',
       values: [userId]
@@ -57,25 +54,34 @@ function postHandler(request, reply, userId) {
           reply(err).code(500);
           return;
         }
-        var requestId = results[1].id;
-        console.log(requestId);
 
-          connection.query({
-          sql: 'INSERT INTO repair_request_images ' +
-               '(photo, requestId) ' +
-               'VALUES (?, ?)',
-          values:[
-            image,
-            requestId,
-          ],
-        }, function(err, results) {
-          connection.release();
+        connection.query({
+          sql: 'SELECT LAST_INSERT_ID() as lastRequestId;'
+        }, function(err, res) {
           if (err) {
             reply(err).code(500);
             return;
           }
+          var requestId = res[0].lastRequestId;
+          console.log(requestId);
 
-        reply('Repair Request added successfully');
+            connection.query({
+            sql: 'INSERT INTO repair_request_images ' +
+                 '(photo, requestId) ' +
+                 'VALUES (?, ?)',
+            values:[
+              payload.image,
+              requestId,
+            ],
+          }, function(err, results) {
+            connection.release();
+            if (err) {
+              console.log(requestId);
+              reply(err).code(500);
+              return;
+            }
+          reply('Repair Request added successfully');
+           });
         });
       });
     });
