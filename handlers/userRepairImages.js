@@ -30,7 +30,6 @@ function getHandler(request, reply, requestId) {
 
 function postHandler(request, reply, requestId) {
   var image = request.payload.image;
-  var requesttId = request.payload.requestId;
   pool.getConnection(function(err, connection) {
     connection.query({
       sql: 'INSERT INTO repair_request_images ' +

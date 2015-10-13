@@ -34,7 +34,6 @@ function postHandler(request, reply, userId) {
       values: [userId]
     }, function(err, results) {
       if (err) {
-        connection.release();
         return reply(err);
       }
       var propertyId = results[0].id;
@@ -49,12 +48,10 @@ function postHandler(request, reply, userId) {
           propertyId
         ],
       }, function(err, results) {
-        connection.release();
         if (err) {
           reply(err).code(500);
           return;
         }
-
         connection.query({
           sql: 'SELECT LAST_INSERT_ID() as lastRequestId;'
         }, function(err, res) {
@@ -63,8 +60,6 @@ function postHandler(request, reply, userId) {
             return;
           }
           var requestId = res[0].lastRequestId;
-          console.log(requestId);
-
             connection.query({
             sql: 'INSERT INTO repair_request_images ' +
                  '(photo, requestId) ' +
@@ -76,7 +71,6 @@ function postHandler(request, reply, userId) {
           }, function(err, results) {
             connection.release();
             if (err) {
-              console.log(requestId);
               reply(err).code(500);
               return;
             }
