@@ -356,10 +356,10 @@ server.route([
       auth: 'session',
       validate: {
         payload: {
-          eventDesc: Joi.string().required(),
+          eventDesc: Joi.string().max(64).required(),
           date: Joi.date().format('DD/MM/YYYY'),
           time: Joi.date().format('h:mm a'),
-          notes: Joi.optional(),
+          notes: Joi.string().max(1000).allow(''),
           propertyId: Joi.number().integer()
         },
       }
