@@ -349,6 +349,23 @@ server.route([
     }
   },
   {
+    method: 'POST',
+    path: '/properties/{propertyId}/calendarEvents',
+    config: {
+      handler: require('./handlers/propertyCalendarEvents.js'),
+      auth: 'session',
+      validate: {
+        payload: {
+          eventDesc: Joi.string().max(64).required(),
+          date: Joi.date().format('DD/MM/YYYY'),
+          time: Joi.date().format('h:mm a'),
+          notes: Joi.string().max(1000).allow(''),
+          propertyId: Joi.number().integer()
+        },
+      }
+    }
+  },
+  {
     // Gets the contacts for a given property for the currently authed user.
     // Contacts are other users the user can liase with (eg for a agent this
     // will include both the tenant and owner of the property).
