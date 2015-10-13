@@ -273,6 +273,14 @@ server.route([
       validate: {
         query: {
           userId: Joi.number().integer()
+        },
+        payload: {
+          tenantEmail: Joi.string().email().max(255).allow(['', null]),
+          ownerEmail: Joi.string().email().max(255),
+          streetAddress: Joi.string().min(1).max(500),
+          suburb: Joi.string().min(1).max(500),
+          postCode: Joi.string().min(4).max(4),
+          dataUrl: Joi.string(),
         }
       }
     }
@@ -376,6 +384,23 @@ server.route([
       auth: 'session',
       validate: {
         params: { propertyId: Joi.number().integer() }
+      }
+    }
+  },
+  {
+    method: 'POST',
+    path: '/properties/{propertyId}/calendarEvents',
+    config: {
+      handler: require('./handlers/propertyCalendarEvents.js'),
+      auth: 'session',
+      validate: {
+        payload: {
+          eventDesc: Joi.string().max(64).required(),
+          date: Joi.date().format('DD/MM/YYYY'),
+          time: Joi.date().format('h:mm a'),
+          notes: Joi.string().max(1000).allow(''),
+          propertyId: Joi.number().integer()
+        },
       }
     }
   },

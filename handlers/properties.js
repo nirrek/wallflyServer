@@ -39,9 +39,13 @@ function postHandler(request, reply, userId) {
       sql: 'SELECT id FROM users WHERE email = ? AND userType = 3',
       values: [payload.ownerEmail]
     }, function(err, results) {
-      if (err || !results[0]) {
+      if (err) {
         connection.release();
         return reply(err).code(500);
+      } else if (!results[0]) {
+        connection.release();
+        var error = new Error('No owner with email: ' + payload.ownerEmail);
+        return reply(error.toString()).code(500);
       }
       var ownerUser = results[0].id;
 
@@ -50,9 +54,13 @@ function postHandler(request, reply, userId) {
           sql: 'SELECT id FROM users WHERE email = ? AND userType = 1',
           values: [payload.tenantEmail]
         }, function(err, results) {
-          if (err || !results[0]) {
+          if (err) {
             connection.release();
             return reply(err).code(500);
+          } else if (!results[0]) {
+            connection.release();
+            var error = new Error('No tenant with email: ' + payload.tenantEmail);
+            return reply(error.toString()).code(500);
           }
           var tenantUser = results[0].id;
 
