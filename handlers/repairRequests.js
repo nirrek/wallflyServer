@@ -10,7 +10,8 @@ function repairRequests(request, reply) {
 
   pool.getConnection(function(err, conn) {
     conn.query({
-      sql: 'SELECT * FROM repair_requests ' +
+      sql: 'SELECT r.id, r.date, r.request, r.photo, r.status, r.tenantId, r.propertyId, r.priority, p.street, p.suburb ' +
+           'FROM repair_requests r JOIN properties p ON r.propertyId = p.id ' +
            'WHERE propertyId IN (SELECT id FROM properties WHERE agentId=?) ' +
            'ORDER BY date DESC',
       values: [agentId],
