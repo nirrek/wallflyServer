@@ -167,7 +167,12 @@ server.route([
       handler: require('./handlers/userRepairs.js'),
       auth: 'session',
       validate: {
-        params: { userId: Joi.number().integer() }
+        params: { userId: Joi.number().integer() },
+        payload: {
+          request: Joi.string().max(2048),
+          priority: Joi.string().valid(['Urgent', 'Can Wait', 'Information']),
+          image: Joi.string(),
+        }
       }
     }
   },
@@ -420,6 +425,48 @@ server.route([
         payload: {
           receiverId: Joi.number().integer().positive(),
           message: Joi.string(),
+        }
+      }
+    }
+  },
+
+  // ---------------------------------------------------------------------------
+  // Repair Request Routes
+  // ---------------------------------------------------------------------------
+  {
+    // Returns repair requests for properties managed by the specified
+    // agent.
+    method: 'GET',
+    path: '/repairRequests',
+    config: {
+      handler: require('./handlers/repairRequests.js'),
+      auth: 'session',
+      validate: {
+        query: {
+          agentId: Joi.number().integer().positive(),
+        }
+      }
+    }
+  },
+  {
+    method: 'PUT',
+    path: '/repairRequests/{repairRequestId}',
+    config: {
+      handler: require('./handlers/repairRequest.js'),
+      auth: 'session',
+      validate: {
+        params: {
+          repairRequestId: Joi.number().integer().positive(),
+        },
+        payload: {
+          id: Joi.number().integer().positive(),
+          date: Joi.date(),
+          request: Joi.string().max(2048),
+          photo: Joi.string(),
+          status: Joi.string().valid(['Submitted', 'Pending', 'Approved', 'Declined']),
+          tenantId: Joi.number().integer().positive(),
+          propertyId: Joi.number().integer().positive(),
+          priority: Joi.string().valid(['Urgent', 'Can Wait', 'Information']),
         }
       }
     }
