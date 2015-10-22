@@ -485,7 +485,8 @@ server.route([
       auth: 'session',
       validate: {
         query: {
-          propertyId: Joi.number().integer().positive(),
+          propertyId: Joi.number().integer().positive().allow(null),
+          overdue: Joi.boolean().allow(null),
         }
       }
     }
@@ -502,6 +503,22 @@ server.route([
           amount: Joi.number(),
           description: Joi.string().max(256),
           propertyId: Joi.number().integer().positive(),
+        }
+      }
+    }
+  },
+  {
+    method: 'PUT',
+    path: '/payments/{paymentId}',
+    config: {
+      handler: require('./handlers/payment.js'),
+      auth: 'session',
+      validate: {
+        params: {
+          paymentId: Joi.number().integer().positive(),
+        },
+        payload: {
+          isPaid: Joi.boolean()
         }
       }
     }
