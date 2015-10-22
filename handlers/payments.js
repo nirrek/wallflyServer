@@ -8,17 +8,39 @@ function payments(request, reply) {
 
 function getHandler(request, reply) {
   var propertyId = request.query.propertyId;
+  var overdue = request.query.overdue;
   var userType = request.auth.artifacts.type;
+  var userId = request.auth.artifacts.id;
 
   pool.getConnection(function(err, conn) {
-    conn.query({
-      sql: 'SELECT * FROM payments ' +
-           'WHERE propertyId = ?',
-      values: [propertyId]
-    }, function(err, results) {
+    var query;
+
+    if (propertyId) {
+      query = {
+        sql: 'SELECT * ' +
+             'FROM payments ' +
+             'WHERE propertyId = ?',
+        values: [propertyId],
+      };
+    } else { // If no propertyId fetch all payments for properties managed by the user
+      query = {
+        sql: 'SELECT y.id, y.dateAdded, y.dateDue, y.isPaid, y.amount, y.description, p.street, p.suburb ' +
+             'FROM payments y, properties p ' +
+             'WHERE y.propertyId = p.id ' +
+             '  AND agentId = ?',
+        values: [userId],
+      };
+    }
+
+    if (overdue) { // add condition to only retrieve overdue payments
+      query.sql += ' AND isPaid = 0 AND dateDue <= CURDATE()';
+    }
+
+    conn.query(query, function(err, results) {
       conn.release();
       if (err) return reply(err.toString()).code(500);
 
+      // Filter out agent/owner payments for the tenant user.
       if (userType === 'tenant') {
         results = results.filter(function(row) {
           return row.type === 'tenant';
