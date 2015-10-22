@@ -15,7 +15,10 @@ function propertyRepairRequests(request, reply) {
 function getHandler(request, reply, propertyId){
   pool.getConnection(function(err, connection) {
     connection.query({
-      sql: 'SELECT * FROM repair_requests WHERE propertyId = ?',
+      sql:
+        'SELECT r.id, r.date, r.request, r.status, r.tenantId, r.propertyId, r.priority, i.id AS photoId, i.photo ' +
+        'FROM repair_requests r, repair_request_images i ' +
+        'WHERE r.propertyId = ? AND i.requestId = r.id',
       values: [propertyId],
     }, function(err, results) {
       connection.release();

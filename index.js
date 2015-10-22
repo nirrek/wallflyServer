@@ -178,19 +178,6 @@ server.route([
   },
   {
     path: '/users/{userId}/repairs/{requestId}/images',
-    method: 'GET',
-    config: {
-      handler: require('./handlers/userRepairImages.js'),
-      auth: 'session',
-      validate: {
-        params: { userId: Joi.number().integer(),
-                  requestId: Joi.number().integer(),
-          },
-       }
-    }
-  },
-  {
-    path: '/users/{userId}/repairs/{requestId}/images',
     method: 'POST',
     config: {
       handler: require('./handlers/userRepairImages.js'),
