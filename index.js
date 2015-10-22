@@ -472,6 +472,58 @@ server.route([
     }
   },
 
+  // ---------------------------------------------------------------------------
+  // Payments Routes
+  // ---------------------------------------------------------------------------
+  {
+    // Returns repair requests for properties managed by the specified
+    // agent.
+    method: 'GET',
+    path: '/payments',
+    config: {
+      handler: require('./handlers/payments.js'),
+      auth: 'session',
+      validate: {
+        query: {
+          propertyId: Joi.number().integer().positive().allow(null),
+          overdue: Joi.boolean().allow(null),
+        }
+      }
+    }
+  },
+  {
+    method: 'POST',
+    path: '/payments',
+    config: {
+      handler: require('./handlers/payments.js'),
+      auth: 'session',
+      validate: {
+        payload: {
+          dateDue: Joi.date(),
+          amount: Joi.number(),
+          description: Joi.string().max(256),
+          propertyId: Joi.number().integer().positive(),
+        }
+      }
+    }
+  },
+  {
+    method: 'PUT',
+    path: '/payments/{paymentId}',
+    config: {
+      handler: require('./handlers/payment.js'),
+      auth: 'session',
+      validate: {
+        params: {
+          paymentId: Joi.number().integer().positive(),
+        },
+        payload: {
+          isPaid: Joi.boolean()
+        }
+      }
+    }
+  },
+
 ]);
 
 server.start(function() {
