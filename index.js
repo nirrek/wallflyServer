@@ -372,8 +372,9 @@ server.route([
       validate: {
         payload: {
           eventDesc: Joi.string().max(64).required(),
-          date: Joi.date().format('DD/MM/YYYY'),
-          time: Joi.date().format('h:mm a'),
+          date: Joi.date(),
+          // date: Joi.date().format('DD/MM/YYYY'),
+          // time: Joi.date().format('h:mm a'),
           notes: Joi.string().max(1000).allow(''),
           propertyId: Joi.number().integer()
         },

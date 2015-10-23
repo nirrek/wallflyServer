@@ -35,7 +35,8 @@ function getHandler(request, reply) {
 
 function postHandler(request, reply) {
   var payload = request.payload;
-  var dateTime = new Date(payload.date.toDateString() + ' ' + payload.time.toTimeString());
+  // var dateTime = new Date(payload.date.toDateString() + ' ' + payload.time.toTimeString());
+  var datetime = payload.date;
   var propertyId = request.params.propertyId;
 
   pool.getConnection(function(err, connection) {
@@ -45,7 +46,7 @@ function postHandler(request, reply) {
            'VALUES (?, ?, ?, ?)',
       values:[
         payload.eventDesc,
-        dateTime,
+        datetime,
         payload.notes,
         propertyId
       ],
