@@ -19,7 +19,7 @@ function getHandler(request, reply) {
 
   pool.getConnection(function(err, connection) {
     connection.query({
-      sql: 'SELECT p.id, street, suburb, postcode, photo, tenantId, agentId ownerId, '+
+      sql: 'SELECT p.id, street, suburb, postcode, photo, tenantId, agentId, ownerId, leaseExpiry, '+
            't.firstName as tenantFN, t.lastName as tenantLN, t.phone as tenantPhone, t.email as tenantEmail, ' +
            'o.firstName as ownerFN, o.lastName as ownerLN, o.phone as ownerPhone, o.email as ownerEmail, ' +
            'a.firstName as agentFN, a.lastName as agentLN, a.phone as agentPhone, a.email as agentEmail ' +
@@ -52,6 +52,7 @@ function postHandler(request, reply) {
 
   pool.getConnection(function(err, conn) {
     var tenantEmail = payload.tenantEmail;
+    var leaseExpiry = payload.leaseExpiry;
     var ownerEmail = payload.ownerEmail;
     var street = payload.street;
     var suburb = payload.suburb;
@@ -96,6 +97,7 @@ function postHandler(request, reply) {
             suburb: suburb,
             postcode: postcode,
             photo: photo,
+            leaseExpiry: leaseExpiry,
           });
         });
         return;
@@ -111,6 +113,7 @@ function postHandler(request, reply) {
         suburb: suburb,
         postcode: postcode,
         photo: photo,
+        leaseExpiry: leaseExpiry,
       });
     });
     return;
@@ -166,7 +169,8 @@ function updatePropertyDetails(options) {
          'street = ?, ' +
          'suburb = ?, ' +
          'postcode = ?, ' +
-         'photo = ? ' +
+         'photo = ?, ' +
+         'leaseExpiry = ? ' +
          'WHERE id = ?',
     values: [
       options.tenantId,
@@ -175,16 +179,57 @@ function updatePropertyDetails(options) {
       options.suburb,
       options.postcode,
       options.photo,
+      options.leaseExpiry,
       options.id,
     ],
   }, function(err, results) {
-    conn.release();
     if (err) {
+      conn.release();
       console.log('Error updating property details', err);
       return reply(err.toString()).code(500);
     }
 
+    updateLeaseExpiry({
+      conn: conn,
+      propertyId: options.id,
+      street: options.street,
+      leaseExpiry: options.leaseExpiry,
+    });
     reply('Property updated successfully');
+  });
+}
+
+// Deletes future lease expiry events, adds new one if required.
+function updateLeaseExpiry(options) {
+  var conn = options.conn;
+  var propertyId = options.propertyId;
+  var street = options.street;
+  var leaseExpiry = options.leaseExpiry;
+
+  // Delete any future lease expiry events for the property
+  conn.query({
+    sql: 'DELETE FROM events ' +
+         'WHERE propertyId = ? ' +
+         'AND date >= CURDATE() ' +
+         'AND event LIKE "%lease expires%"',
+    values: [propertyId]
+  }, function(err) {
+    if (err) console.log(err);
+    if (!leaseExpiry) return; // nothing to add.
+
+    // Insert a new lease expiry event for the property.
+    conn.query({
+      sql: 'INSERT INTO events (date, event, propertyId) ' +
+           'VALUES (?, ?, ?)',
+      values: [
+        leaseExpiry,
+        'Lease expires ' + street,
+        propertyId,
+      ],
+    }, function(err) {
+      conn.release();
+      if (err) console.log(err);
+    });
   });
 }
 

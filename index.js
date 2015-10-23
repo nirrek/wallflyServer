@@ -250,6 +250,7 @@ server.route([
         },
         payload: {
           tenantEmail: Joi.string().email().max(255).allow(['', null]),
+          leaseExpiry: Joi.date().iso().allow(['', null]),
           ownerEmail: Joi.string().email().max(255),
           streetAddress: Joi.string().min(1).max(500),
           suburb: Joi.string().min(1).max(500),
@@ -281,6 +282,7 @@ server.route([
         payload: {
           propertyId: Joi.number().integer().required(),
           tenantEmail: Joi.string().email().max(255).allow(['', null]),
+          leaseExpiry: Joi.date().iso().allow(['', null]),
           ownerEmail: Joi.string().email().max(255),
           street: Joi.string().min(1).max(500),
           suburb: Joi.string().min(1).max(500),
