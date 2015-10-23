@@ -433,6 +433,59 @@ server.route([
   },
 
   // ---------------------------------------------------------------------------
+  // Events Routes
+  // ---------------------------------------------------------------------------
+  {
+    // Returns all events for a given agent and their managing properties
+    method: 'GET',
+    path: '/events',
+    config: {
+      handler: require('./handlers/events.js'),
+      auth: 'session',
+      validate: {
+        query: {
+          agentId: Joi.number().integer().positive(),
+        }
+      }
+    }
+  },
+  {
+    // Updates an event with a given eventId
+    method: 'PUT',
+    path: '/events/{eventId}',
+    config: {
+      handler: require('./handlers/events.js'),
+      auth: 'session',
+      validate: {
+        params: {
+          eventId: Joi.number().integer().positive(),
+        },
+        payload: {
+          id: Joi.number().integer().positive(),
+          date: Joi.date(),
+          event: Joi.string().max(64).required(),
+          notes: Joi.string().max(1000).allow(['', null]),
+          propertyId: Joi.number().integer().positive(),
+        }
+      }
+    }
+  },
+  {
+    // Deletes an event with a given eventId
+    method: 'DELETE',
+    path: '/events/{eventId}',
+    config: {
+      handler: require('./handlers/events.js'),
+      auth: 'session',
+      validate: {
+        params: {
+          eventId: Joi.number().integer().positive(),
+        }
+      }
+    }
+  },
+
+  // ---------------------------------------------------------------------------
   // Repair Request Routes
   // ---------------------------------------------------------------------------
   {
