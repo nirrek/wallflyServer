@@ -66,8 +66,8 @@ function postHandler(request, reply, userId) {
 
           connection.query({
             sql: 'INSERT INTO properties ' +
-                 '(agentId, ownerId, postcode, street, suburb, tenantId, photo) ' +
-                 'VALUES (?, ?, ?, ?, ?, ?, ?)',
+                 '(agentId, ownerId, postcode, street, suburb, tenantId, photo, leaseExpiry) ' +
+                 'VALUES (?, ?, ?, ?, ?, ?, ?, ?)',
             values:[
               userId,
               ownerUser,
@@ -76,14 +76,18 @@ function postHandler(request, reply, userId) {
               payload.suburb,
               tenantUser,
               payload.dataUrl,
+              payload.leaseExpiry,
             ],
           }, function(err, results) {
-            connection.release();
             if (err) {
-              reply(err).code(500);
+              connection.release();
+              reply(err.toString()).code(500);
               return;
             }
 
+            if (payload.leaseExpiry) {
+              addLeaseExpiryEvent(connection, payload.leaseExpiry);
+            }
             reply('Property added successfully');
           });
         });
@@ -92,8 +96,8 @@ function postHandler(request, reply, userId) {
       else {
         connection.query({
           sql: 'INSERT INTO properties ' +
-               '(agentId, ownerId, postcode, street, suburb, tenantId, photo) ' +
-               'VALUES (?, ?, ?, ?, ?, NULL, ?)',
+               '(agentId, ownerId, postcode, street, suburb, tenantId, photo, leaseExpiry) ' +
+               'VALUES (?, ?, ?, ?, ?, NULL, ?, ?)',
           values:[
             userId,
             ownerUser,
@@ -101,20 +105,64 @@ function postHandler(request, reply, userId) {
             payload.streetAddress,
             payload.suburb,
             payload.dataUrl,
+            payload.leaseExpiry,
           ],
         }, function(err, results) {
-          connection.release();
           if (err) {
-            reply(err).code(500);
+            connection.release();
+            reply(err.toString()).code(500);
             return;
           }
 
+          if (payload.leaseExpiry) {
+            addLeaseExpiryEvent(connection, payload.leaseExpiry);
+          }
           reply('Property added successfully');
         });
       }
     });
   });
+}
 
+
+
+function addLeaseExpiryEvent(conn, leaseExpiry) {
+  // Retrieve the propertyId from the just added property
+  conn.query({
+    sql: 'SELECT LAST_INSERT_ID() as propertyId'
+  }, function(err, results) {
+    if (err) {
+      conn.release();
+      return console.log(err);
+    }
+
+    var propertyId = results[0].propertyId;
+
+    // Fetch the property address
+    conn.query({
+      sql: 'SELECT street FROM properties WHERE id = ?',
+      values: [propertyId]
+    }, function(err, results) {
+      if (err) {
+        conn.release();
+        return console.log(err);
+      }
+
+      // Insert a new lease expiry event for the property.
+      conn.query({
+        sql: 'INSERT INTO events (date, event, propertyId) ' +
+             'VALUES (?, ?, ?)',
+        values: [
+          leaseExpiry,
+          'Lease expires ' + results[0].street,
+          propertyId,
+        ],
+      }, function(err, results) {
+        conn.release();
+        if (err) console.log(err);
+      });
+    });
+  });
 }
 
 module.exports = properties;
