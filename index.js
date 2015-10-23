@@ -448,6 +448,27 @@ server.route([
     }
   },
   {
+    // Updates an event with a given eventId
+    method: 'PUT',
+    path: '/events/{eventId}',
+    config: {
+      handler: require('./handlers/events.js'),
+      auth: 'session',
+      validate: {
+        params: {
+          eventId: Joi.number().integer().positive(),
+        },
+        payload: {
+          id: Joi.number().integer().positive(),
+          date: Joi.date(),
+          event: Joi.string().max(64).required(),
+          notes: Joi.string().max(1000).allow(['', null]),
+          propertyId: Joi.number().integer().positive(),
+        }
+      }
+    }
+  },
+  {
     // Deletes an event with a given eventId
     method: 'DELETE',
     path: '/events/{eventId}',
