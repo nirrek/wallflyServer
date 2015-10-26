@@ -25,20 +25,21 @@ function userInspections(request, reply) {
       }
 
       connection.query({
-        sql: 'SELECT date, comments, firstName, lastName, street, suburb ' +
+        sql: 'SELECT date, i.photo, comments, firstName, lastName, street, suburb ' +
              'FROM inspections i, users u, properties p ' +
              'WHERE i.propertyId = ? AND i.inspectorId = u.id AND i.propertyId = p.id',
         values: [results[0].id],
       }, function(err, results) {
         connection.release();
-        if (err) return reply(err);
+        if (err) return reply(err.toString()).code(500);
 
         var massagedResults = results.map(function(row) {
           return {
             date: row.date,
             property: row.street + ', ' + row.suburb,
             inspector: row.firstName + ' ' + row.lastName,
-            comments: row.comments
+            comments: row.comments,
+            photo: row.photo,
           };
         });
 
