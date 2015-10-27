@@ -1,4 +1,6 @@
 var validate = require('../validation.js').validate;
+var database = require('../database.js');
+var pool = database.getConnectionPool();
 
 function loginHandler(request, reply) {
   var username = request.payload.username;
@@ -16,7 +18,26 @@ function loginHandler(request, reply) {
       type: user.type,
     });
 
+    if (user.isFirstLogin) {
+      updateFirstLogin(user.id);
+    }
+
     return reply(user);
+  });
+}
+
+// Updates the given users first login status to false.
+function updateFirstLogin(userId) {
+  pool.getConnection(function(err, conn) {
+    conn.query({
+      sql: 'UPDATE users ' +
+           'SET isFirstLogin=0 ' +
+           'WHERE id=?',
+      values: [userId],
+    }, function(err, results) {
+      conn.release();
+      if (err) console.log(err);
+    });
   });
 }
 
