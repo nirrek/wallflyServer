@@ -18,7 +18,8 @@ function getHandler(request, reply, userId){
     pool.getConnection(function(err, connection) {
       connection.query({
         sql: 'SELECT * FROM properties p, payments y ' +
-             'WHERE y.propertyId = p.id AND y.tenantId = ?',
+             'WHERE y.propertyId = p.id AND y.tenantId = ? ' +
+             'ORDER BY dateDue DESC',
         values: [userId],
       }, function(err, results) {
         connection.release();

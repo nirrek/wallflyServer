@@ -36,6 +36,9 @@ function getHandler(request, reply) {
       query.sql += ' AND isPaid = 0 AND dateDue <= CURDATE()';
     }
 
+    // Order from most recent to oldest.
+    query.sql += ' ORDER BY dateDue DESC';
+
     conn.query(query, function(err, results) {
       conn.release();
       if (err) return reply(err.toString()).code(500);
