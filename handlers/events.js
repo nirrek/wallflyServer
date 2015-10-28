@@ -31,7 +31,7 @@ function getHandler(request, reply) {
       }
 
       if (results.length === 0) {
-        console.log('No result for this user = ' + userId)
+        console.log('No result for this agent = ' + agentId);
       }
       reply(results);
     });
