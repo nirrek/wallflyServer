@@ -1,8 +1,16 @@
+/**
+ * Handlers for properties resource.
+ */
 var config = require('../config.js');
 var database = require('../database.js');
 var pool = database.getConnectionPool();
 var getPhotoUrl = require('../utils.js').getPhotoUrl;
 
+/**
+ * Route the request based upon the HTTP method type.
+ * @param  {Object} request Hapi request object.
+ * @param  {Object} reply   Hapi reply object.
+ */
 function properties(request, reply) {
   var userId = request.query.userId;
 
@@ -14,6 +22,12 @@ function properties(request, reply) {
   else if (request.method === 'post') postHandler(request, reply, userId);
 }
 
+/**
+ * GET handler
+ * @param {Object} request Hapi request object.
+ * @param {Object} reply   Hapi reply object.
+ * @param {Number} userId  The userId of the request initiator.
+ */
 function getHandler(request, reply, userId) {
   pool.getConnection(function(err, connection) {
     connection.query({
@@ -31,6 +45,12 @@ function getHandler(request, reply, userId) {
 
 }
 
+/**
+ * POST handler
+ * @param {Object} request Hapi request object.
+ * @param {Object} reply   Hapi reply object.
+ * @param {Number} userId  The userId of the request initiator.
+ */
 function postHandler(request, reply, userId) {
   var payload = request.payload;
 
@@ -124,8 +144,11 @@ function postHandler(request, reply, userId) {
   });
 }
 
-
-
+/**
+ * Adds a new leaseExpiry event.
+ * @param {Object} conn        Database connection.
+ * @param {Date}   leaseExpiry The date the lease expires.
+ */
 function addLeaseExpiryEvent(conn, leaseExpiry) {
   // Retrieve the propertyId from the just added property
   conn.query({

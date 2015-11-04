@@ -1,13 +1,18 @@
+/**
+ * Handler for creating a new user.
+ */
 var database = require('../database.js');
 var Bcrypt = require('bcrypt');
 var pool = database.getConnectionPool();
 
-// Request handler for creating a new user
+/**
+ * POST handler
+ * @param {Object} request Hapi request object.
+ * @param {Object} reply   Hapi reply object.
+ */
 function userCreate(request, reply) {
-
   createUser(request.payload, function(error) {
     if (error) {
-      // TODO
       reply(error).code(400);
       return;
     }
@@ -19,7 +24,12 @@ function userCreate(request, reply) {
 
 }
 
-// Inserts a new user into the database given the submitted payload.
+/**
+ * Inserts a new user in the database, with the populating details provided
+ * in the payload.
+ * @param  {Object}   payload  The payload of the POST request
+ * @param  {Function} callback The callback function.
+ */
 function createUser(payload, callback) {
   var p = payload; // convenience
 
@@ -38,8 +48,8 @@ function createUser(payload, callback) {
       var userTypeId = results[0].id;
 
       // The salt will be incorporated into the hash, so need not be stored
-      // separately in the database. The compare function will know how to extract
-      // the embedded salt during comparison.
+      // separately in the database. The compare function will knows how to
+      // extract the embedded salt during comparison.
       var salt = Bcrypt.genSaltSync(8);
       var hash = Bcrypt.hashSync(p.password, salt);
 
@@ -54,8 +64,8 @@ function createUser(payload, callback) {
         if (error) {
           console.log(error);
 
-          // hapi will complain if we try to return the error object as one of
-          // the property names `code` has another meaning in hapi responses
+          // Hapi will complain if we try to return the error object as one of
+          // the property names `code` has another meaning in Hapi responses
           var nonconflictError = {
             errorType: error.code,
             errorMessage: error.message,

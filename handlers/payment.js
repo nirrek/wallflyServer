@@ -1,10 +1,23 @@
+/**
+ * Handlers for the payment resource.
+ */
 var database = require('../database.js');
 var pool = database.getConnectionPool();
 
+/**
+ * Route the request based upon the HTTP method type.
+ * @param  {Object} request Hapi request object.
+ * @param  {Object} reply   Hapi reply object.
+ */
 function payment(request, reply) {
   if      (request.method === 'put')  putHandler(request, reply);
 }
 
+/**
+ * PUT handler
+ * @param {Object} request Hapi request object.
+ * @param {Object} reply   Hapi reply object.
+ */
 function putHandler(request, reply) {
   var paymentId = request.params.paymentId;
   var isPaid = request.payload.isPaid;
@@ -22,7 +35,5 @@ function putHandler(request, reply) {
     });
   });
 }
-
-
 
 module.exports = payment;

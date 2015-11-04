@@ -1,17 +1,30 @@
+/**
+ * Handlers for the user repairs resource.
+ */
 var database = require('../database.js');
 var pool = database.getConnectionPool();
 var getPhotoUrl = require('../utils.js').getPhotoUrl;
 
+/**
+ * Route the request based upon the HTTP method type.
+ * @param  {Object} request Hapi request object.
+ * @param  {Object} reply   Hapi reply object.
+ */
 function userRepairs(request, reply) {
   var userId = request.params.userId;
   if (request.auth.artifacts.id !== userId) {
-    return reply('You arent allowed to do this');
+    return reply('Not authorized').code(401);
   }
 
   if      (request.method === 'get')  getHandler(request, reply, userId);
   else if (request.method === 'post') postHandler(request, reply, userId);
 }
 
+/**
+ * GET handler
+ * @param {Object} request Hapi request object.
+ * @param {Object} reply   Hapi reply object.
+ */
 function getHandler(request, reply, userId) {
   pool.getConnection(function(err, connection) {
     connection.query({
@@ -26,6 +39,11 @@ function getHandler(request, reply, userId) {
   });
 }
 
+/**
+ * POST handler
+ * @param {Object} request Hapi request object.
+ * @param {Object} reply   Hapi reply object.
+ */
 function postHandler(request, reply, userId) {
   var payload = request.payload;
 

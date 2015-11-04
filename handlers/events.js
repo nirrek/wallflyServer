@@ -1,13 +1,25 @@
+/**
+ * Handlers for events resource.
+ */
 var database = require('../database.js');
 var pool = database.getConnectionPool();
 
+/**
+ * Route the request based upon the HTTP method type.
+ * @param  {Object} request Hapi request object.
+ * @param  {Object} reply   Hapi reply object.
+ */
 function events(request, reply) {
-
   if      (request.method === 'get')  getHandler(request, reply);
   else if (request.method === 'put') putHandler(request, reply);
   else if (request.method === 'delete') deleteHandler(request, reply);
 }
 
+/**
+ * GET handler
+ * @param  {Object} request Hapi request object.
+ * @param  {Object} reply   Hapi reply object.
+ */
 function getHandler(request, reply) {
   var agentId = request.query.agentId;
 
@@ -38,6 +50,11 @@ function getHandler(request, reply) {
   });
 }
 
+/**
+ * PUT handler
+ * @param  {Object} request Hapi request object.
+ * @param  {Object} reply   Hapi reply object.
+ */
 function putHandler(request, reply) {
   var payload = request.payload;
   pool.getConnection(function(err, connection) {
@@ -66,6 +83,11 @@ function putHandler(request, reply) {
   });
 }
 
+/**
+ * DELETE handler
+ * @param  {Object} request Hapi request object.
+ * @param  {Object} reply   Hapi reply object.
+ */
 function deleteHandler(request, reply) {
 
   pool.getConnection(function(err, connection) {
@@ -84,7 +106,5 @@ function deleteHandler(request, reply) {
     });
   });
 }
-
-
 
 module.exports = events;

@@ -1,6 +1,14 @@
+/**
+ * Handlers for the messages resource.
+ */
 var database = require('../database.js');
 var pool = database.getConnectionPool();
 
+/**
+ * Route the request based upon the HTTP method type.
+ * @param  {Object} request Hapi request object.
+ * @param  {Object} reply   Hapi reply object.
+ */
 function messages(request, reply) {
   var userId = request.auth.artifacts.id;
 
@@ -8,6 +16,12 @@ function messages(request, reply) {
   else if (request.method === 'post') postHandler(request, reply, userId);
 }
 
+/**
+ * GET handler
+ * @param {Object} request Hapi request object.
+ * @param {Object} reply   Hapi reply object.
+ * @param {Number} userId  The userId of the request initiator.
+ */
 function getHandler(request, reply, userId) {
   var partnerId = request.query.partnerId; // conversation partner of the user.
   var count = request.query.count;
@@ -51,6 +65,12 @@ function getHandler(request, reply, userId) {
   });
 }
 
+/**
+ * POST handler
+ * @param {Object} request Hapi request object.
+ * @param {Object} reply   Hapi reply object.
+ * @param {Number} userId  The userId of the request initiator.
+ */
 function postHandler(request, reply, userId) {
   var receiverId = request.payload.receiverId;
   var message = request.payload.message;

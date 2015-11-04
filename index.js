@@ -1,3 +1,7 @@
+/**
+ * Server initialization module.
+ * Includes configuration for all route endpoints.
+ */
 var Hapi = require('hapi');
 var Good = require('good');
 var Basic = require('hapi-auth-basic');
@@ -5,10 +9,15 @@ var database = require('./database.js');
 var Joi = require('joi');
 var config = require('./config.js');
 
+// Instantiate a new Hapi server instance.
 var server = new Hapi.Server({
   connections: {
+    // Need to configure CORS for our routes as we make liberal use of cross
+    // origin requests. Webpack dev server and hapi server are bound to two
+    // different ports (thus a different origin) and wallfly.surge.sh
+    // which serves the client is a different origin to our AWS backend.
     routes: {
-      cors: { // Enable Cross-Origin-Resource-Sharing during dev.
+      cors: { // Enable Cross-Origin-Resource-Sharing
         origin: ['*'], // Allow any origin to perform a CORS request
         credentials: true, // Access-Control-Allow-Credentials: true
       },
@@ -20,7 +29,7 @@ server.connection({
   port: config.port
 });
 
-// initialize the database connection pool
+// Initialize the database connection pool
 database.initialize();
 var pool = database.getConnectionPool();
 
@@ -63,160 +72,190 @@ server.route([
       auth: 'session',
     }
   },
+
+
+  // ---------------------------------------------------------------------------
+  // Messages Resource Routes
+  // ---------------------------------------------------------------------------
   {
-    method: 'POST',
-    path: '/users',
+    // Returns the 20 most recent messages exchanged between the authenticated
+    // user from and the user specified by the partnerId.
+    method: 'GET',
+    path: '/messages',
     config: {
-      handler: require('./handlers/userCreate.js'),
+      handler: require('./handlers/messages.js'),
+      auth: 'session',
       validate: {
-        payload: {
-          username: Joi.string().alphanum().min(3).max(30),
-          password: Joi.string().regex(/[a-zA-Z0-9]{5,100}/),
-          firstName: Joi.string().alphanum().max(100),
-          lastName: Joi.string().alphanum().max(100),
-          phone: Joi.string().alphanum().min(8).max(10),
-          email: Joi.string().email(),
-          userType: Joi.string().valid(['tenant', 'agent', 'owner']),
-          avatar: Joi.string(),
-        },
-        options: {
-          abortEarly: false,    // find all validation errors, not just first.
-          presence: 'required', // all properties required
+        query: {
+          partnerId: Joi.number().integer().positive(),
+          count: Joi.number().integer().positive().default(20),
+          offset: Joi.number().integer().positive().default(0),
         }
       }
     }
   },
   {
-    method: 'GET',
-    path: '/users/{userId}',
+    // Sends a new message from the authenticated user to the receiverId
+    method: 'POST',
+    path: '/messages',
     config: {
-      handler: require('./handlers/userGet.js'),
+      handler: require('./handlers/messages.js'),
       auth: 'session',
       validate: {
-        params: { userId: Joi.number().integer() }
+        payload: {
+          receiverId: Joi.number().integer().positive(),
+          message: Joi.string(),
+        }
+      }
+    }
+  },
+
+
+  // ---------------------------------------------------------------------------
+  // Events Resource Routes
+  // ---------------------------------------------------------------------------
+  {
+    // Returns all events for a given agent and their managing properties
+    method: 'GET',
+    path: '/events',
+    config: {
+      handler: require('./handlers/events.js'),
+      auth: 'session',
+      validate: {
+        query: {
+          agentId: Joi.number().integer().positive(),
+        }
+      }
+    }
+  },
+  {
+    // Updates an event with a given eventId
+    method: 'PUT',
+    path: '/events/{eventId}',
+    config: {
+      handler: require('./handlers/events.js'),
+      auth: 'session',
+      validate: {
+        params: {
+          eventId: Joi.number().integer().positive(),
+        },
+        payload: {
+          id: Joi.number().integer().positive(),
+          date: Joi.date(),
+          event: Joi.string().max(64).required(),
+          notes: Joi.string().max(1000).allow(['', null]),
+          propertyId: Joi.number().integer().positive(),
+        }
+      }
+    }
+  },
+  {
+    // Deletes an event with a given eventId
+    method: 'DELETE',
+    path: '/events/{eventId}',
+    config: {
+      handler: require('./handlers/events.js'),
+      auth: 'session',
+      validate: {
+        params: {
+          eventId: Joi.number().integer().positive(),
+        }
+      }
+    }
+  },
+
+
+  // ---------------------------------------------------------------------------
+  // Repair Request Resource Routes
+  // ---------------------------------------------------------------------------
+  {
+    // Returns repair requests for properties managed by the specified
+    // agent.
+    method: 'GET',
+    path: '/repairRequests',
+    config: {
+      handler: require('./handlers/repairRequests.js'),
+      auth: 'session',
+      validate: {
+        query: {
+          agentId: Joi.number().integer().positive(),
+        }
       }
     }
   },
   {
     method: 'PUT',
-    path: '/users/{userId}',
+    path: '/repairRequests/{repairRequestId}',
     config: {
-      handler: require('./handlers/userUpdate.js'),
+      handler: require('./handlers/repairRequest.js'),
       auth: 'session',
       validate: {
-        params: { userId: Joi.number().integer() },
+        params: {
+          repairRequestId: Joi.number().integer().positive(),
+        },
         payload: {
-          username: Joi.string().alphanum().min(3).max(30),
-          firstName: Joi.string().alphanum().max(100),
-          lastName: Joi.string().alphanum().max(100),
-          phone: Joi.string().alphanum().max(10),
-          email: Joi.string().email(),
-          avatar: Joi.string(),
-        }
-      }
-    }
-  },
-  {
-    method: 'GET',
-    path: '/users/{userId}/property',
-    config: {
-      handler: require('./handlers/userProperty.js'),
-      auth: 'session',
-      validate: {
-        params: { userId: Joi.number().integer() }
-      }
-    }
-  },
-  {
-    path: '/users/{userId}/payments',
-    method: 'GET',
-    config: {
-      handler: require('./handlers/userPayments.js'),
-      auth: 'session',
-      validate: {
-        params: { userId: Joi.number().integer() }
-      }
-    }
-  },
-  {
-    path: '/users/{userId}/payments',
-    method: 'POST',
-    config: {
-      handler: require('./handlers/userPayments.js'),
-      auth: 'session',
-      validate: {
-        params: { userId: Joi.number().integer() }
-      }
-    }
-  },
-  {
-    path: '/users/{userId}/repairs',
-    method: 'GET',
-    config: {
-      handler: require('./handlers/userRepairs.js'),
-      auth: 'session',
-      validate: {
-        params: { userId: Joi.number().integer() }
-      }
-    }
-  },
-  {
-    path: '/users/{userId}/repairs',
-    method: 'POST',
-    config: {
-      handler: require('./handlers/userRepairs.js'),
-      auth: 'session',
-      validate: {
-        params: { userId: Joi.number().integer() },
-        payload: {
+          id: Joi.number().integer().positive(),
+          date: Joi.date(),
           request: Joi.string().max(2048),
+          photo: Joi.string(),
+          status: Joi.string().valid(['Submitted', 'Pending', 'Approved', 'Declined']),
+          tenantId: Joi.number().integer().positive(),
+          propertyId: Joi.number().integer().positive(),
           priority: Joi.string().valid(['Urgent', 'Can Wait', 'Information']),
-          image: Joi.string(),
+        }
+      }
+    }
+  },
+
+
+  // ---------------------------------------------------------------------------
+  // Payments Resource Routes
+  // ---------------------------------------------------------------------------
+  {
+    // Returns repair requests for properties managed by the specified
+    // agent.
+    method: 'GET',
+    path: '/payments',
+    config: {
+      handler: require('./handlers/payments.js'),
+      auth: 'session',
+      validate: {
+        query: {
+          propertyId: Joi.number().integer().positive().allow(null),
+          overdue: Joi.boolean().allow(null),
         }
       }
     }
   },
   {
-    path: '/users/{userId}/inspections',
-    method: 'GET',
+    method: 'POST',
+    path: '/payments',
     config: {
-      handler: require('./handlers/userInspections.js'),
+      handler: require('./handlers/payments.js'),
       auth: 'session',
       validate: {
-        params: { userId: Joi.number().integer() }
+        payload: {
+          dateDue: Joi.date(),
+          amount: Joi.number(),
+          description: Joi.string().max(256),
+          propertyId: Joi.number().integer().positive(),
+        }
       }
     }
   },
   {
-    path: '/users/{userId}/events',
-    method: 'GET',
+    method: 'PUT',
+    path: '/payments/{paymentId}',
     config: {
-      handler: require('./handlers/userEvents.js'),
+      handler: require('./handlers/payment.js'),
       auth: 'session',
       validate: {
-        params: { userId: Joi.number().integer() }
-      }
-    }
-  },
-  {
-    path: '/users/{userId}/messages',
-    method: ['GET', 'POST'],
-    config: {
-      handler: require('./handlers/userMessages.js'),
-      auth: 'session',
-      validate: {
-        params: { userId: Joi.number().integer() }
-      }
-    }
-  },
-  {
-    method: 'GET',
-    path: '/uploads/{path*}',
-    handler: {
-      directory: {
-        path: './uploads',
-        listing: false,
-        index: false
+        params: {
+          paymentId: Joi.number().integer().positive(),
+        },
+        payload: {
+          isPaid: Joi.boolean()
+        }
       }
     }
   },
@@ -398,184 +437,151 @@ server.route([
 
 
   // ---------------------------------------------------------------------------
-  // Messages Resource Routes
+  // User Routes
   // ---------------------------------------------------------------------------
   {
-    // Returns the 20 most recent messages exchanged between the authenticated
-    // user from and the user specified by the partnerId.
-    method: 'GET',
-    path: '/messages',
-    config: {
-      handler: require('./handlers/messages.js'),
-      auth: 'session',
-      validate: {
-        query: {
-          partnerId: Joi.number().integer().positive(),
-          count: Joi.number().integer().positive().default(20),
-          offset: Joi.number().integer().positive().default(0),
-        }
-      }
-    }
-  },
-  {
-    // Sends a new message from the authenticated user to the receiverId
     method: 'POST',
-    path: '/messages',
+    path: '/users',
     config: {
-      handler: require('./handlers/messages.js'),
-      auth: 'session',
+      handler: require('./handlers/userCreate.js'),
       validate: {
         payload: {
-          receiverId: Joi.number().integer().positive(),
-          message: Joi.string(),
-        }
-      }
-    }
-  },
-
-  // ---------------------------------------------------------------------------
-  // Events Routes
-  // ---------------------------------------------------------------------------
-  {
-    // Returns all events for a given agent and their managing properties
-    method: 'GET',
-    path: '/events',
-    config: {
-      handler: require('./handlers/events.js'),
-      auth: 'session',
-      validate: {
-        query: {
-          agentId: Joi.number().integer().positive(),
-        }
-      }
-    }
-  },
-  {
-    // Updates an event with a given eventId
-    method: 'PUT',
-    path: '/events/{eventId}',
-    config: {
-      handler: require('./handlers/events.js'),
-      auth: 'session',
-      validate: {
-        params: {
-          eventId: Joi.number().integer().positive(),
+          username: Joi.string().alphanum().min(3).max(30),
+          password: Joi.string().regex(/[a-zA-Z0-9]{5,100}/),
+          firstName: Joi.string().alphanum().max(100),
+          lastName: Joi.string().alphanum().max(100),
+          phone: Joi.string().alphanum().min(8).max(10),
+          email: Joi.string().email(),
+          userType: Joi.string().valid(['tenant', 'agent', 'owner']),
+          avatar: Joi.string(),
         },
-        payload: {
-          id: Joi.number().integer().positive(),
-          date: Joi.date(),
-          event: Joi.string().max(64).required(),
-          notes: Joi.string().max(1000).allow(['', null]),
-          propertyId: Joi.number().integer().positive(),
+        options: {
+          abortEarly: false,    // find all validation errors, not just first.
+          presence: 'required', // all properties required
         }
       }
     }
   },
   {
-    // Deletes an event with a given eventId
-    method: 'DELETE',
-    path: '/events/{eventId}',
-    config: {
-      handler: require('./handlers/events.js'),
-      auth: 'session',
-      validate: {
-        params: {
-          eventId: Joi.number().integer().positive(),
-        }
-      }
-    }
-  },
-
-  // ---------------------------------------------------------------------------
-  // Repair Request Routes
-  // ---------------------------------------------------------------------------
-  {
-    // Returns repair requests for properties managed by the specified
-    // agent.
     method: 'GET',
-    path: '/repairRequests',
+    path: '/users/{userId}',
     config: {
-      handler: require('./handlers/repairRequests.js'),
+      handler: require('./handlers/userGet.js'),
       auth: 'session',
       validate: {
-        query: {
-          agentId: Joi.number().integer().positive(),
-        }
+        params: { userId: Joi.number().integer() }
       }
     }
   },
   {
     method: 'PUT',
-    path: '/repairRequests/{repairRequestId}',
+    path: '/users/{userId}',
     config: {
-      handler: require('./handlers/repairRequest.js'),
+      handler: require('./handlers/userUpdate.js'),
       auth: 'session',
       validate: {
-        params: {
-          repairRequestId: Joi.number().integer().positive(),
-        },
+        params: { userId: Joi.number().integer() },
         payload: {
-          id: Joi.number().integer().positive(),
-          date: Joi.date(),
+          username: Joi.string().alphanum().min(3).max(30),
+          firstName: Joi.string().alphanum().max(100),
+          lastName: Joi.string().alphanum().max(100),
+          phone: Joi.string().alphanum().max(10),
+          email: Joi.string().email(),
+          avatar: Joi.string(),
+        }
+      }
+    }
+  },
+  {
+    method: 'GET',
+    path: '/users/{userId}/property',
+    config: {
+      handler: require('./handlers/userProperty.js'),
+      auth: 'session',
+      validate: {
+        params: { userId: Joi.number().integer() }
+      }
+    }
+  },
+  {
+    path: '/users/{userId}/payments',
+    method: 'GET',
+    config: {
+      handler: require('./handlers/userPayments.js'),
+      auth: 'session',
+      validate: {
+        params: { userId: Joi.number().integer() }
+      }
+    }
+  },
+  {
+    path: '/users/{userId}/payments',
+    method: 'POST',
+    config: {
+      handler: require('./handlers/userPayments.js'),
+      auth: 'session',
+      validate: {
+        params: { userId: Joi.number().integer() }
+      }
+    }
+  },
+  {
+    path: '/users/{userId}/repairs',
+    method: 'GET',
+    config: {
+      handler: require('./handlers/userRepairs.js'),
+      auth: 'session',
+      validate: {
+        params: { userId: Joi.number().integer() }
+      }
+    }
+  },
+  {
+    path: '/users/{userId}/repairs',
+    method: 'POST',
+    config: {
+      handler: require('./handlers/userRepairs.js'),
+      auth: 'session',
+      validate: {
+        params: { userId: Joi.number().integer() },
+        payload: {
           request: Joi.string().max(2048),
-          photo: Joi.string(),
-          status: Joi.string().valid(['Submitted', 'Pending', 'Approved', 'Declined']),
-          tenantId: Joi.number().integer().positive(),
-          propertyId: Joi.number().integer().positive(),
           priority: Joi.string().valid(['Urgent', 'Can Wait', 'Information']),
+          image: Joi.string(),
         }
       }
     }
   },
-
-  // ---------------------------------------------------------------------------
-  // Payments Routes
-  // ---------------------------------------------------------------------------
   {
-    // Returns repair requests for properties managed by the specified
-    // agent.
+    path: '/users/{userId}/inspections',
     method: 'GET',
-    path: '/payments',
     config: {
-      handler: require('./handlers/payments.js'),
+      handler: require('./handlers/userInspections.js'),
       auth: 'session',
       validate: {
-        query: {
-          propertyId: Joi.number().integer().positive().allow(null),
-          overdue: Joi.boolean().allow(null),
-        }
+        params: { userId: Joi.number().integer() }
       }
     }
   },
   {
-    method: 'POST',
-    path: '/payments',
+    path: '/users/{userId}/events',
+    method: 'GET',
     config: {
-      handler: require('./handlers/payments.js'),
+      handler: require('./handlers/userEvents.js'),
       auth: 'session',
       validate: {
-        payload: {
-          dateDue: Joi.date(),
-          amount: Joi.number(),
-          description: Joi.string().max(256),
-          propertyId: Joi.number().integer().positive(),
-        }
+        params: { userId: Joi.number().integer() }
       }
     }
   },
   {
-    method: 'PUT',
-    path: '/payments/{paymentId}',
+    path: '/users/{userId}/messages',
+    method: ['GET', 'POST'],
     config: {
-      handler: require('./handlers/payment.js'),
+      handler: require('./handlers/userMessages.js'),
       auth: 'session',
       validate: {
-        params: {
-          paymentId: Joi.number().integer().positive(),
-        },
-        payload: {
-          isPaid: Joi.boolean()
-        }
+        params: { userId: Joi.number().integer() }
       }
     }
   },

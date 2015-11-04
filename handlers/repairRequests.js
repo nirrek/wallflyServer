@@ -1,6 +1,14 @@
+/**
+ * Handlers for the repair requests resource.
+ */
 var database = require('../database.js');
 var pool = database.getConnectionPool();
 
+/**
+ * GET handler
+ * @param {Object} request Hapi request object.
+ * @param {Object} reply   Hapi reply object.
+ */
 function repairRequests(request, reply) {
   var agentId = request.query.agentId;
 

@@ -1,17 +1,28 @@
+/**
+ * Handlers for property events resource.
+ */
 var database = require('../database.js');
 var pool = database.getConnectionPool();
 
+/**
+ * Route the request based upon the HTTP method type.
+ * @param  {Object} request Hapi request object.
+ * @param  {Object} reply   Hapi reply object.
+ */
 function propertyCalendarEvents(request, reply) {
 
   if      (request.method === 'get')  getHandler(request, reply);
   else if (request.method === 'post') postHandler(request, reply);
 
 }
+
+/**
+ * GET handler
+ * @param {Object} request Hapi request object.
+ * @param {Object} reply   Hapi reply object.
+ */
 function getHandler(request, reply) {
   var propertyId = request.params.propertyId;
-
-  // TODO add access control. Currently any authed user can fetch the details
-  // of any property, not just one they are associated with.
 
   pool.getConnection(function(err, connection) {
     connection.query({
@@ -33,9 +44,13 @@ function getHandler(request, reply) {
 
 }
 
+/**
+ * POST handler
+ * @param {Object} request Hapi request object.
+ * @param {Object} reply   Hapi reply object.
+ */
 function postHandler(request, reply) {
   var payload = request.payload;
-  // var dateTime = new Date(payload.date.toDateString() + ' ' + payload.time.toTimeString());
   var datetime = payload.date;
   var propertyId = request.params.propertyId;
 

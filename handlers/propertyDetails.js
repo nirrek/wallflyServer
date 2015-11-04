@@ -1,21 +1,27 @@
+/**
+ * Handlers for the property details resource.
+ */
 var getPhotoUrl = require('../utils.js').getPhotoUrl;
 var database = require('../database.js');
 var pool = database.getConnectionPool();
 
+/**
+ * Route the request based upon the HTTP method type.
+ * @param  {Object} request Hapi request object.
+ * @param  {Object} reply   Hapi reply object.
+ */
 function propertyDetails(request, reply) {
   if      (request.method === 'get')  getHandler(request, reply);
   else if (request.method === 'post') postHandler(request, reply);
 }
 
-
-// -----------------------------------------------------------------------------
-//  GET Handler
-// -----------------------------------------------------------------------------
+/**
+ * GET handler
+ * @param {Object} request Hapi request object.
+ * @param {Object} reply   Hapi reply object.
+ */
 function getHandler(request, reply) {
   var propertyId = request.params.propertyId;
-
-  // TODO add access control. Currently any authed user can fetch the details
-  // of any property, not just one they are associated with.
 
   pool.getConnection(function(err, connection) {
     connection.query({
@@ -43,10 +49,11 @@ function getHandler(request, reply) {
   });
 }
 
-
-// -----------------------------------------------------------------------------
-// POST Handler
-// -----------------------------------------------------------------------------
+/**
+ * POST handler
+ * @param {Object} request Hapi request object.
+ * @param {Object} reply   Hapi reply object.
+ */
 function postHandler(request, reply) {
   var payload = request.payload;
 
@@ -59,7 +66,6 @@ function postHandler(request, reply) {
     var postcode = payload.postcode;
     var propertyId = payload.propertyId;
     var photo = payload.photo;
-
 
     getUserByEmail({
       connection: conn,
@@ -200,6 +206,11 @@ function updatePropertyDetails(options) {
 }
 
 // Deletes future lease expiry events, adds new one if required.
+/**
+ * Deletes any future lease expiry events for the property and adds a new
+ * one if required (in the case of an expiry being updated, not removed).
+ * @param  {Object} options Configuration options.
+ */
 function updateLeaseExpiry(options) {
   var conn = options.conn;
   var propertyId = options.propertyId;

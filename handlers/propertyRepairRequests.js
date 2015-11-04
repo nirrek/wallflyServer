@@ -1,17 +1,28 @@
+/**
+ * Handlers for property repair requests resource.
+ */
 var database = require('../database.js');
 var pool = database.getConnectionPool();
 var getPhotoUrl = require('../utils.js').getPhotoUrl;
 
+/**
+ * Route the request based upon the HTTP method type.
+ * @param  {Object} request Hapi request object.
+ * @param  {Object} reply   Hapi reply object.
+ */
 function propertyRepairRequests(request, reply) {
   var propertyId = request.params.propertyId;
-
-  // TODO add access control. Currently any authed user can fetch the details
-  // of any property, not just one they are associated with.
-
-  if (request.method === 'get') getHandler(request, reply, propertyId);
+  if      (request.method === 'get') getHandler(request, reply, propertyId);
   else if (request.method === 'put') putHandler(request, reply, propertyId);
 }
 
+/**
+ * GET handler
+ * @param {Object} request Hapi request object.
+ * @param {Object} reply   Hapi reply object.
+ * @param {Number} propertyId The id of the property to fetch the repair
+ *                            requests for.
+ */
 function getHandler(request, reply, propertyId){
   pool.getConnection(function(err, connection) {
     connection.query({
@@ -32,6 +43,13 @@ function getHandler(request, reply, propertyId){
   });
 }
 
+/**
+ * PUT handler
+ * @param {Object} request Hapi request object.
+ * @param {Object} reply   Hapi reply object.
+ * @param {Number} propertyId The id of the property to update the repair
+ *                            requests of.
+ */
 function putHandler(request, reply, propertyId){
   var repairStatus = request.payload.repairStatus;
   var requestId = request.payload.requestId;

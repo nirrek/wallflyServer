@@ -1,7 +1,15 @@
+/**
+ * Handler for logging a user in.
+ */
 var validate = require('../validation.js').validate;
 var database = require('../database.js');
 var pool = database.getConnectionPool();
 
+/**
+ * Login handler.
+ * @param  {Object} request Hapi request object.
+ * @param  {Object} reply   Hapi reply object.
+ */
 function loginHandler(request, reply) {
   var username = request.payload.username;
   var password = request.payload.password;
@@ -26,7 +34,10 @@ function loginHandler(request, reply) {
   });
 }
 
-// Updates the given users first login status to false.
+/**
+ * Updates the given user's first login status to false.
+ * @param  {Number} userId The userId for the user whose status is to be updated
+ */
 function updateFirstLogin(userId) {
   pool.getConnection(function(err, conn) {
     conn.query({

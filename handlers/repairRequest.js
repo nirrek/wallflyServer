@@ -1,8 +1,13 @@
+/**
+ * Handler for individual repair request resource.
+ */
 var database = require('../database.js');
 var pool = database.getConnectionPool();
 
 /**
- * Handler for individual repair request records.
+ * PUT handler
+ * @param {Object} request Hapi request object.
+ * @param {Object} reply   Hapi reply object.
  */
 function repairRequest(request, reply) {
   var p = request.payload;

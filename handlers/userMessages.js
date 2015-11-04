@@ -1,18 +1,31 @@
+/**
+ * Handlers for user messages resource.
+ */
 var config = require('../config.js');
 var database = require('../database.js');
 var pool = database.getConnectionPool();
 
+/**
+ * Route the request based upon the HTTP method type.
+ * @param  {Object} request Hapi request object.
+ * @param  {Object} reply   Hapi reply object.
+ */
 function userMessages(request, reply) {
   var userId = request.params.userId;
 
   if (request.auth.artifacts.id !== userId) {
-    return reply('You arent allowed to do this');
+    return reply('Not authorized').code(401);
   }
 
   if      (request.method === 'get')  getHandler(request, reply, userId);
   else if (request.method === 'post') postHandler(request, reply, userId);
 }
 
+/**
+ * GET handler
+ * @param {Object} request Hapi request object.
+ * @param {Object} reply   Hapi reply object.
+ */
 function getHandler(request, reply, userId) {
   pool.getConnection(function(err, connection) {
     // Find the tenant's current agent for the property
@@ -49,6 +62,11 @@ function getHandler(request, reply, userId) {
   });
 }
 
+/**
+ * POST handler
+ * @param {Object} request Hapi request object.
+ * @param {Object} reply   Hapi reply object.
+ */
 function postHandler(request, reply, userId) {
   pool.getConnection(function(err, connection) {
     connection.query({

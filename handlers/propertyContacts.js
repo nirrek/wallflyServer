@@ -1,6 +1,14 @@
+/**
+ * Handler for the property contacts resource.
+ */
 var database = require('../database.js');
 var pool = database.getConnectionPool();
 
+/**
+ * Handler for fetching the contact details for a given property.
+ * @param  {Object} request Hapi request object.
+ * @param  {Object} reply   Hapi reply object.
+ */
 function propertyContacts(request, reply) {
   var userId = request.auth.artifacts.id;
   var propertyId = request.params.propertyId;

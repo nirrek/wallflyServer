@@ -1,3 +1,6 @@
+/**
+ * Utilities module for various utilities used throughout the server.
+ */
 var config = require('./config.js');
 var fs = require('fs');
 var path = require('path');

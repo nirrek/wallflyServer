@@ -1,11 +1,16 @@
+/**
+ * Handlers for property payments resource.
+ */
 var database = require('../database.js');
 var pool = database.getConnectionPool();
 
+/**
+ * GET handler
+ * @param {Object} request Hapi request object.
+ * @param {Object} reply   Hapi reply object.
+ */
 function propertyPayments(request, reply) {
   var propertyId = request.params.propertyId;
-
-  // TODO add access control. Currently any authed user can fetch the details
-  // of any property, not just one they are associated with.
 
   pool.getConnection(function(err, connection) {
     connection.query({
@@ -24,7 +29,6 @@ function propertyPayments(request, reply) {
       reply(results);
     });
   });
-
 }
 
 module.exports = propertyPayments;

@@ -1,9 +1,17 @@
+/**
+ * Handler for updating a user resource.
+ */
 var database = require('../database.js');
 var pool = database.getConnectionPool();
 
+/**
+ * PUT handler
+ * @param {Object} request Hapi request object.
+ * @param {Object} reply   Hapi reply object.
+ */
 function userUpdate(request, reply) {
   var userId = request.params.userId;
-  var username = request.payload.username; // TODO remove username once schema updated
+  var username = request.payload.username;
   var firstName = request.payload.firstName
   var lastName = request.payload.lastName
   var phone = request.payload.phone
@@ -11,13 +19,13 @@ function userUpdate(request, reply) {
   var avatar = request.payload.avatar
 
   if (request.auth.artifacts.id !== userId) {
-    return reply('Unauthorized request').code(401);
+    return reply('Not authorized').code(401);
   }
 
   pool.getConnection(function(err, conn) {
     conn.query({
       sql: 'UPDATE users ' +
-           'SET username = ?, ' +  // TODO remove username once schema updated
+           'SET username = ?, ' +
            'firstName = ?, ' +
            'lastName = ?, ' +
            'phone = ?, ' +

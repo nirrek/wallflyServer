@@ -1,11 +1,24 @@
+/**
+ * Handlers for payments resource.
+ */
 var database = require('../database.js');
 var pool = database.getConnectionPool();
 
+/**
+ * Route the request based upon the HTTP method type.
+ * @param  {Object} request Hapi request object.
+ * @param  {Object} reply   Hapi reply object.
+ */
 function payments(request, reply) {
   if      (request.method === 'get')  getHandler(request, reply);
   else if (request.method === 'post') postHandler(request, reply);
 }
 
+/**
+ * GET handler
+ * @param {Object} request Hapi request object.
+ * @param {Object} reply   Hapi reply object.
+ */
 function getHandler(request, reply) {
   var propertyId = request.query.propertyId;
   var overdue = request.query.overdue;
@@ -55,6 +68,11 @@ function getHandler(request, reply) {
   });
 }
 
+/**
+ * POST handler
+ * @param {Object} request Hapi request object.
+ * @param {Object} reply   Hapi reply object.
+ */
 function postHandler(request, reply) {
   var dateDue = request.payload.dateDue;
   var amount = request.payload.amount;
@@ -64,7 +82,6 @@ function postHandler(request, reply) {
   var isPaid = (type !== 'tenant'); // agent/owner added 'paid' by default.
 
   pool.getConnection(function(err, conn) {
-
     conn.query({
       sql: 'INSERT INTO payments (dateDue, isPaid, amount, description, propertyId, type) ' +
            'VALUES (?,?,?,?,?,?)',
